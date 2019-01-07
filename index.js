@@ -1,14 +1,9 @@
-var express = require('express');
-var app = express();
+const express = require("express");
+const app = express();
+const routes = require("./routes");
 
-const routes = require('./routes')
+const port = 3000;
 
-var port = 3000;
-
-app.use('/api', routes);
-
-/* app.get('/', function(req, res) {
-    res.send('Hola Mundo!');
-}); */
+app.use("/api", routes);
 
 app.listen(port);
