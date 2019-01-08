@@ -1,4 +1,7 @@
 const { Sequelize, sequelize } = require("./db");
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 
 const dbUser = sequelize.define("user", {
   username: { type: Sequelize.STRING, allowNull: false },
@@ -8,22 +11,36 @@ const dbUser = sequelize.define("user", {
     unique: true,
     validate: { isEmail: true }
   },
-  psw: { type: Sequelize.STRING, allowNull: false }
+  pwd: { type: Sequelize.STRING, allowNull: false }
 });
 
+const hashPwd = async (pwd) => {
+  try {
+    return await bcrypt.hash(pwd, saltRounds)
+  } catch(e) {
+    console.error(e)
+    return 
+  } 
+} 
 class User {
   constructor() {
-    this.create = ({ username, email, psw }) => {
-      return sequelize
+    this.create = async ({ username, email, pwd }) => {
+      try {
+        const hash = await hashPwd(pwd)
+
+        return sequelize
         .sync()
         .then(() =>
           dbUser.create({
             username,
             email,
-            psw
+            pwd: hash
           })
         )
         .then(result => result);
+      } catch(e) {
+        console.log(e)
+      }
     };
 
     this.getAll = () => {
@@ -31,6 +48,23 @@ class User {
         attributes: ["id", "username", "email"]
       });
     };
+
+    this.login = async (us) => {
+      try {
+        const user = await dbUser.findOne({
+          where: { email: us.email }
+        });
+        if(user) {
+          return await bcrypt.compare(us.pwd, user.pwd)          
+        } else {
+          return false
+        }
+      } catch(e) {
+        console.log(e)
+      }    
+    }
+
+
   }
 }
 
