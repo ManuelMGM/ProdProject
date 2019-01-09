@@ -1,7 +1,6 @@
 const { Sequelize, sequelize } = require("./db");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 const saltRounds = 10;
-
 
 const dbUser = sequelize.define("user", {
   username: { type: Sequelize.STRING, allowNull: false },
@@ -14,32 +13,32 @@ const dbUser = sequelize.define("user", {
   pwd: { type: Sequelize.STRING, allowNull: false }
 });
 
-const hashPwd = async (pwd) => {
+const hashPwd = async pwd => {
   try {
-    return await bcrypt.hash(pwd, saltRounds)
-  } catch(e) {
-    console.error(e)
-    return 
-  } 
-} 
+    return await bcrypt.hash(pwd, saltRounds);
+  } catch (e) {
+    console.error(e);
+    return;
+  }
+};
 class User {
   constructor() {
     this.create = async ({ username, email, pwd }) => {
       try {
-        const hash = await hashPwd(pwd)
+        const hash = await hashPwd(pwd);
 
         return sequelize
-        .sync()
-        .then(() =>
-          dbUser.create({
-            username,
-            email,
-            pwd: hash
-          })
-        )
-        .then(result => result);
-      } catch(e) {
-        console.log(e)
+          .sync()
+          .then(() =>
+            dbUser.create({
+              username,
+              email,
+              pwd: hash
+            })
+          )
+          .then(result => result);
+      } catch (e) {
+        console.log(e);
       }
     };
 
@@ -49,22 +48,20 @@ class User {
       });
     };
 
-    this.login = async (us) => {
+    this.login = async us => {
       try {
         const user = await dbUser.findOne({
           where: { email: us.email }
         });
-        if(user) {
-          return await bcrypt.compare(us.pwd, user.pwd)          
+        if (user) {
+          return await bcrypt.compare(us.pwd, user.pwd);
         } else {
-          return false
+          return false;
         }
-      } catch(e) {
-        console.log(e)
-      }    
-    }
-
-
+      } catch (e) {
+        console.log(e);
+      }
+    };
   }
 }
 

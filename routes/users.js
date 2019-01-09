@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const User = require("../Models/User");
 
 router.get("/", async function(req, res) {
+  console.log("req", req.token);
   try {
     const users = await User.getAll();
     res.send(users);
