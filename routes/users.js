@@ -1,15 +1,13 @@
-const router = require("express").Router();
-const bodyParser = require("body-parser");
+const router = require('express').Router();
+const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 
-const User = require("../Models/User");
+const User = require('../Models/User');
 
-router.get("/", protectedMiddleware, async function(req, res) {
+router.get('/', protectedMiddleware, async (req, res) => {
   try {
-
         const users = await User.getAll();
-        res.send(users)
-      
+        res.send(users)      
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
@@ -29,7 +27,7 @@ function protectedMiddleware(req, res, next) {
 }
 
 router.use(bodyParser.json());
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const newUser = await User.create(req.body);
 
@@ -40,15 +38,13 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.post("/login", async function(req, res) {
+router.post('/login', async (req, res) => {
   try {
       const user = await User.login(req.body);
       if(user) {
           jwt.sign({ user }, 'privatekey', { expiresIn: '1h' }, (err, token) => {
               if(err) { console.log(err) }
-        
           res.send({id:user.id, token})
-              //res.send(user)
           });
       } else {
           res.sendStatus(401)

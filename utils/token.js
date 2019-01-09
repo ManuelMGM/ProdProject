@@ -2,10 +2,10 @@ module.exports = function(opts) {
   if (!opts) {
     opts = {};
   }
-  var queryKey = opts.queryKey || "access_token";
-  var bodyKey = opts.bodyKey || "access_token";
-  var headerKey = opts.headerKey || "Bearer";
-  var reqKey = opts.reqKey || "token";
+  var queryKey = opts.queryKey || 'access_token';
+  var bodyKey = opts.bodyKey || 'access_token';
+  var headerKey = opts.headerKey || 'Bearer';
+  var reqKey = opts.reqKey || 'token';
   
   return function(req, res, next) {
     var token, error;
