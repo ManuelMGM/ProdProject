@@ -1,10 +1,10 @@
-var express = require('express');
-var app = express();
+require('dotenv').config();
+const express = require('express');
+const app = express();
+const routes = require('./routes');
 
-var port = 3000;
+const port = 3000;
 
-app.get('/', function(req, res) {
-    res.send('Hola Mundo!');
-});
+app.use('/api', routes);
 
-app.listen(3000);
+app.listen(port);
