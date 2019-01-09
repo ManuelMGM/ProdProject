@@ -6,6 +6,7 @@ module.exports = function(opts) {
   var bodyKey = opts.bodyKey || "access_token";
   var headerKey = opts.headerKey || "Bearer";
   var reqKey = opts.reqKey || "token";
+  
   return function(req, res, next) {
     var token, error;
 

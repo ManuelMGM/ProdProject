@@ -54,7 +54,8 @@ class User {
           where: { email: us.email }
         });
         if (user) {
-          return await bcrypt.compare(us.pwd, user.pwd);
+          const result = await bcrypt.compare(us.pwd, user.pwd);
+          return result && user
         } else {
           return false;
         }
