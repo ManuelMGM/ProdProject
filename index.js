@@ -1,12 +1,12 @@
 require('dotenv').config();
-const express = require('express');
-const app = express();
+const app = require('restana')();
 const routes = require('./routes');
 
 const port = process.env.PORT || 3000;
 
-app.use('/api', routes);
+// Setting routes
+routes(app);
 
-app.listen(port, () => {
+app.start(port).then(() => {
   console.log('Running on port:', port);
 });
