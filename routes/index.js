@@ -1,5 +1,8 @@
 const router = require('express').Router();
 const users = require('./users');
+const products = require('./products');
+const providers = require('./providers');
+
 const bodyParser = require('body-parser');
 
 const { Token } = require('../utils');
@@ -12,5 +15,7 @@ router.use(
 );
 router.use(bodyParser.json());
 router.use('/users', users);
+router.use('/products', products);
+router.use('/providers', providers);
 
 module.exports = router;
