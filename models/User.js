@@ -25,7 +25,7 @@ const hashPwd = async pwd => {
 };
 
 class User {
-  constructor() {
+  constructor() {    
     this.create = async ({ username, email, pwd }) => {
       try {
         const hash = await hashPwd(pwd);
@@ -48,7 +48,7 @@ class User {
     this.getAll = () => {
 
       return dbUser.findAll({
-        attributes: ["id", "username", "email"]
+        attributes: ['id', 'username', 'email']
       });
     };
 
