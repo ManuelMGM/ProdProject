@@ -31,7 +31,7 @@ class Provider {
         this.getAll = () => {
 
             return dbProvider.findAll( {
-                attributes: [ "cuit", "name", "razonSocial", "apellido", "email" ]
+                attributes: [ 'cuit', 'name', 'razonSocial', 'apellido', 'email' ]
             });
         }
 
@@ -39,7 +39,7 @@ class Provider {
             
             return dbProvider.findAll( {
                 where: { id },
-                attributes: [ "cuit", "name", "razonSocial", "apellido", "email" ]
+                attributes: [ 'cuit', 'name', 'razonSocial', 'apellido', 'email' ]
             });
         }
 

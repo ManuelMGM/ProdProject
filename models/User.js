@@ -48,7 +48,7 @@ class User {
     this.getAll = () => {
 
       return dbUser.findAll({
-        attributes: ["id", "username", "email"]
+        attributes: ['id', 'username', 'email']
       });
     };
 

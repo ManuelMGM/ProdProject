@@ -36,11 +36,11 @@ class SaleDetail {
             }
         }
 
-        this.getAll = (saleNumber) => {
+        this.getAll = saleNumber => {
 
             return dbSaleDetail.findAll( {
                 where: { saleNumber },
-                attributes: [ "item", "saleNumber", "type", "codProduct", "quantity" ]
+                attributes: [ 'item', 'saleNumber', 'type', 'codProduct', 'quantity' ]
             })
         }
 

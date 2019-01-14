@@ -33,7 +33,7 @@ class Sale {
         this.getAll = () => {
 
             return dbSale.findAll( {
-                attributes: [ "number", "type", "date", "amount" ]
+                attributes: [ 'number', 'type', 'date', 'amount' ]
             })
         }
 
@@ -41,7 +41,7 @@ class Sale {
             
             return dbSale.findAll( {
                 where: { number },
-                attributes: [ "number", "type", "date", "amount" ]
+                attributes: [ 'number', 'type', 'date', 'amount' ]
             })            
         }
 

@@ -1,16 +1,16 @@
 const { Sequelize, sequelize } = require('./db');
 
-const dbTypeProduct = sequelize.define('typesProducts', {
+const dbProductType = sequelize.define('productsTypes', {
     description: { type: Sequelize.STRING, allowNull: false, unique: true }
 });
 
-class TypeProduct {
+class ProductType {
     constructor() {        
         this.create =  async ({ description }) => {
             try {
                 await sequelize
                     .sync();
-                const result = await dbTypeProduct.create({
+                const result = await dbProductType.create({
                     description
                 });
                 
@@ -22,16 +22,16 @@ class TypeProduct {
 
         this.getAll = () => {
 
-            return dbTypeProduct.findAll( {
-                attributes: [ "id", "description" ]
+            return dbProductType.findAll( {
+                attributes: [ 'id', 'description' ]
             })
         }
 
         this.getProduct = ( description ) => {
             
-            return dbTypeProduct.findAll( {
+            return dbProductType.findAll( {
                 where: { description },
-                attributes: [ "id", "description" ]
+                attributes: [ 'id', 'description' ]
             })            
         }
 
@@ -40,4 +40,4 @@ class TypeProduct {
     }
 }
 
-module.exports = new TypeProduct();
+module.exports = new ProductType();
