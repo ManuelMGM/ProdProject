@@ -1,16 +1,18 @@
 const { Sequelize, sequelize } = require('./db');
 
 const dbSale = sequelize.define('sales', {
-    number: { type: Sequelize.BIGINT, allowNull: false, validate: { isNumeric: true }},
-    type: { type: Sequelize.CHAR, allowNull: false },
+    number: { type: Sequelize.BIGINT, allowNull: false,
+        primaryKey: true,
+        validate: { isNumeric: true }},
+    type: { type: Sequelize.CHAR, allowNull: false,
+        primaryKey: true },
     date: { type: Sequelize.DATEONLY, validate: { isDate: true }},
-    cuil: { type: Sequelize.BIGINT, validate: { isNumeric: true }},
     amount: { type: Sequelize.FLOAT },
 });
 
 class Sale {
     constructor() {
-        this.create = async ({ number, type, date, cuil, amount }) => {
+        this.create = async ({ number, type, date, amount }) => {
             try {
                 //must be a transaction creating each details in a for loop
                 await sequelize
@@ -19,7 +21,6 @@ class Sale {
                     number,
                     type,
                     date,
-                    cuil,
                     amount
                 });
                 
@@ -32,7 +33,7 @@ class Sale {
         this.getAll = () => {
 
             return dbSale.findAll( {
-                attributes: [ "number", "type", "date", "cuil", "amount" ]
+                attributes: [ "number", "type", "date", "amount" ]
             })
         }
 
@@ -40,7 +41,7 @@ class Sale {
             
             return dbSale.findAll( {
                 where: { number },
-                attributes: [ "number", "type", "date", "cuil", "amount" ]
+                attributes: [ "number", "type", "date", "amount" ]
             })            
         }
 

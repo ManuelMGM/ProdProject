@@ -1,17 +1,19 @@
 const { Sequelize, sequelize } = require('./db');
 
 const dbSaleDetail = sequelize.define('salesDetails', {
-    item: { type: Sequelize.INTEGER },
-    saleNumber: { type: Sequelize.BIGINT, allowNull: false },
-    type: { type: Sequelize.CHAR, allowNull: false },
-    codProduct: { type: Sequelize.STRING },
+    item: { type: Sequelize.INTEGER, 
+        primaryKey: true },
+    saleNumber: { type: Sequelize.BIGINT, allowNull: false, 
+        primaryKey: true,
+        references: { model: 'sales', key: 'number'} },
+    type: { type: Sequelize.CHAR, allowNull: false,
+        primaryKey: true,
+        references: { model: 'sales', key: 'type'} },
+    id_Product: { type: Sequelize.INTEGER, 
+        references: { model: 'products', key: 'id' } },
     quantity: { type: Sequelize.FLOAT, validate: { isNumeric: true }},
     price: { type: Sequelize.FLOAT },
 });
-
-// dbSaleDetail.belongsTo(Sale, { foreignKey: 'saleNumber'} )
-// dbSaleDetail.belongsTo(Sale, { foreignKey: 'type'} )
-// dbSaleDetail.hasOne(Product, { foreignKey: 'codProduct'} )
 
 
 class SaleDetail {

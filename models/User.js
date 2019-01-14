@@ -25,7 +25,7 @@ const hashPwd = async pwd => {
 };
 
 class User {
-  constructor() {
+  constructor() {    
     this.create = async ({ username, email, pwd }) => {
       try {
         const hash = await hashPwd(pwd);
