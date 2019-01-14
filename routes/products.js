@@ -26,4 +26,14 @@ router.post('/', protected, async (req, res) => {
   }
 });
 
+router.get('/search/:id', protected, async (req, res) => {
+  try {
+    const product = await Product.getProduct(req.params.id);
+    res.send(product)
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
 module.exports = router;

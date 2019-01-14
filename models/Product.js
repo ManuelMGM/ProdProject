@@ -10,23 +10,24 @@ const dbProduct = sequelize.define('products', {
     //warranty: { type: Sequelize.INTEGER }
 });
 
+// dbProduct.hasOne(TypeProduct, { foreignKey: 'typeProduct'} )
+
 class Product {
     constructor() {
-        this.create = async ({ codProduct, description, typeProduct, stock, minimumStock, price }) => {
+        this.create =  async ({ codProduct, description, typeProduct, stock, minimumStock, price }) => {
             try {
-                return sequelize
-                .sync()
-                .then(() =>
-                dbProduct.create({
+                await sequelize
+                    .sync();
+                const result = await dbProduct.create({
                     codProduct,
                     description,
                     typeProduct,
                     stock,
                     minimumStock,
                     price
-                })
-            )
-            .then(result => result);
+                });
+                
+                return result;
             } catch (e) {
                 console.error(e);
             }
@@ -36,7 +37,15 @@ class Product {
 
             return dbProduct.findAll( {
                 attributes: [ "id", "codProduct", "price", "description", "typeProduct", "stock" ]
-            });
+            })
+        }
+
+        this.getProduct = ( id ) => {
+            
+            return dbProduct.findAll( {
+                where: { id },
+                attributes: [ "id", "codProduct", "price", "description", "typeProduct", "stock" ]
+            })            
         }
 
 

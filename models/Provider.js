@@ -12,18 +12,17 @@ class Provider {
     constructor() {
         this.create = async ({ cuit, name, razonSocial, apellido, email }) => {
             try {
-                return sequelize
-                .sync()
-                .then(() =>
-                dbProvider.create({
+                await sequelize
+                    .sync();
+                const result = await dbProvider.create({
                     cuit,
                     name,
                     razonSocial,
                     apellido,
                     email
-                })
-            )
-            .then(result => result);
+                });
+                
+                return result;
             } catch (e) {
                 console.error(e);
             }
@@ -36,6 +35,13 @@ class Provider {
             });
         }
 
+        this.getProvider = ( id ) => {
+            
+            return dbProvider.findAll( {
+                where: { id },
+                attributes: [ "cuit", "name", "razonSocial", "apellido", "email" ]
+            });
+        }
 
 
     }

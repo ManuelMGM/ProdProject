@@ -29,4 +29,14 @@ router.post('/', protected, async (req, res) => {
   }
 });
 
+router.get('/search/:id', protected, async (req, res) => {
+  try {
+    const provider = await Provider.getProvider(req.params.id);
+    res.send(provider);
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+})
+
 module.exports = router;
