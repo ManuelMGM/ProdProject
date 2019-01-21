@@ -2,10 +2,11 @@ const { Sequelize, sequelize } = require('./db');
 const SaleDetail = require('./SaleDetail');
 
 const dbSale = sequelize.define('sales', {
-    number: { type: Sequelize.BIGINT, allowNull: false, //unique: true,
+    // Could fail when persisting for first time. Should add unique prop to avoid
+    number: { type: Sequelize.BIGINT, allowNull: false,
         primaryKey: true,
         validate: { isNumeric: true }},
-    type: { type: Sequelize.STRING, allowNull: false, //unique: true,
+    type: { type: Sequelize.STRING, allowNull: false,
         primaryKey: true },
     amount: { type: Sequelize.FLOAT },
 });
@@ -13,39 +14,31 @@ const dbSale = sequelize.define('sales', {
 class Sale {
     constructor() {
         this.create = async ({type, amount, details}) => {
+            let transaction;
             try {
                 await sequelize
                     .sync();
-                const number = await sequelize.query('SELECT MAX("number") FROM sales WHERE type = ?', 
-                    {replacements: [type], type: sequelize.QueryTypes.SELECT})
-                    .then(result => { 
-                        if (parseInt(result[0].max, 10) > 0) {
-
-                            return (parseInt(result[0].max, 10) + 1);
-                        }else {
-
-                            return 1;
-                        };
-                        }) ;
-                const detailList = [];
+                let number = await sequelize.query('SELECT MAX("number") FROM sales WHERE type = ?', 
+                    {replacements: [type], type: sequelize.QueryTypes.SELECT});
+                number = parseInt(number[0].max, 10) > 0 ? (parseInt(number[0].max, 10) + 1) : 1;
                 
-                return sequelize.transaction( t => {
-                    return dbSale.create({
-                        number,
-                        type,
-                        amount
-                    }, {transaction: t}).then(() => {
-                        return details.forEach( item => {
-                            const newDetail = SaleDetail.create({ saleNumber: number, type,
-                                id_Product: item.id_Product, price: item.price, quantity: item.quantity});
-                            detailList.push(newDetail);
-                        });
-                    }, {transaction: t});
-                }).then( result => result)
-                .catch(err => {
-                    console.error(err);
-                })
+                transaction = await sequelize.transaction();
+                const sale = await dbSale.create({
+                    number,
+                    type,
+                    amount
+                }, {transaction});
+                
+                details.forEach(async item => {
+                    await SaleDetail.create({ saleNumber: number, type,
+                        id_Product: item.id_Product, price: item.price, quantity: item.quantity}, {transaction});
+                });
+
+                await transaction.commit();
+
+                return sale.get({plain: true});
             } catch (e) {
+                transaction.rollback();
                 console.error(e);
             }
         }
@@ -57,16 +50,13 @@ class Sale {
             })
         }
 
-        this.getSale = ( number ) => {
+        this.getSale = number => {
             
             return dbSale.findAll( {
                 where: { number },
                 attributes: [ 'number', 'type', 'amount' ]
             })            
         }
-
-
-
     }
 }
 

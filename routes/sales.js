@@ -16,13 +16,12 @@ router.get('/', protected, async (req, res) => {
 router.post('/', protected, async (req, res) => {
   try {
     const {type, amount, details} = req.body;
-    if(details && details.length){
-      const newSale = Sale.create({type, amount, details});
-      res.send(newSale);
+    if(details && details.length) {
+      const newSale = await Sale.create({type, amount, details});
+      res.send({ number: newSale.number, type: newSale.type, amount: newSale.amount });
     } else {
       res.sendStatus(400);
-    }
-    
+    }    
     } catch (e) {
       console.error(e);
       res.sendStatus(400);
