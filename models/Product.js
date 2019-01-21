@@ -61,6 +61,7 @@ class Product {
 
     this.getProduct = async id => {
       try {
+        
         return await dbProduct.findById(id);
       } catch (e) {
         console.error(e);
@@ -70,6 +71,7 @@ class Product {
 
   getProductByDescription(term) {
     const Op = Sequelize.Op;
+
     return dbProduct.findAll({
       where: { description: { [Op.iLike]: `%${term}%` } },
       attributes: [
