@@ -3,10 +3,38 @@ const router = require('express').Router();
 const { protected } = require('../middlewares');
 const Product = require('../models/Product');
 
+router.get('/search', protected, async (req, res) => {
+  try {
+    if (req.query.term) {
+      const product = await Product.getProductByDescription(req.query.term);
+      res.send(product);
+    } else {
+      res.status(400).send('Param "term" did not found');
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(400);
+  }
+});
+
 router.get('/', protected, async (req, res) => {
   try {
     const products = await Product.getAll();
     res.send(products);
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
+router.get('/:id', protected, async (req, res) => {
+  try {
+    if (req.params.id) {
+      const product = await Product.getProduct(req.params.id);
+      res.send(product);
+    } else {
+      res.send({});
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
@@ -23,16 +51,6 @@ router.post('/', protected, async (req, res) => {
       typeProduct: newProduct.typeProduct,
       id_Provider: newProduct.id_Provider,
     });
-  } catch (e) {
-    console.error(e);
-    res.sendStatus(400);
-  }
-});
-
-router.get('/search/:id', protected, async (req, res) => {
-  try {
-    const product = await Product.getProduct(req.params.id);
-    res.send(product);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

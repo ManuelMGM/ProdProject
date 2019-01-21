@@ -16,6 +16,7 @@ router.use(
   })
 );
 router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({ extended: false }));
 router.use('/users', users);
 router.use('/products', products);
 router.use('/providers', providers);
