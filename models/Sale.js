@@ -1,31 +1,44 @@
 const { Sequelize, sequelize } = require('./db');
+const SaleDetail = require('./SaleDetail');
 
 const dbSale = sequelize.define('sales', {
+    // Could fail when persisting for first time. Should add unique prop to avoid
     number: { type: Sequelize.BIGINT, allowNull: false,
         primaryKey: true,
         validate: { isNumeric: true }},
-    type: { type: Sequelize.CHAR, allowNull: false,
+    type: { type: Sequelize.STRING, allowNull: false,
         primaryKey: true },
-    date: { type: Sequelize.DATEONLY, validate: { isDate: true }},
     amount: { type: Sequelize.FLOAT },
 });
 
 class Sale {
     constructor() {
-        this.create = async ({ number, type, date, amount }) => {
+        this.create = async ({type, amount, details}) => {
+            let transaction;
             try {
-                //must be a transaction creating each details in a for loop
                 await sequelize
                     .sync();
-                const result = await dbSale.create({
+                let number = await sequelize.query('SELECT MAX("number") FROM sales WHERE type = ?', 
+                    {replacements: [type], type: sequelize.QueryTypes.SELECT});
+                number = parseInt(number[0].max, 10) > 0 ? (parseInt(number[0].max, 10) + 1) : 1;
+                
+                transaction = await sequelize.transaction();
+                const sale = await dbSale.create({
                     number,
                     type,
-                    date,
                     amount
-                });
+                }, {transaction});
                 
-                return result;
+                details.forEach(async item => {
+                    await SaleDetail.create({ saleNumber: number, type,
+                        id_Product: item.id_Product, price: item.price, quantity: item.quantity}, {transaction});
+                });
+
+                await transaction.commit();
+
+                return sale.get({plain: true});
             } catch (e) {
+                transaction.rollback();
                 console.error(e);
             }
         }
@@ -33,20 +46,17 @@ class Sale {
         this.getAll = () => {
 
             return dbSale.findAll( {
-                attributes: [ 'number', 'type', 'date', 'amount' ]
+                attributes: [ 'number', 'type', 'amount' ]
             })
         }
 
-        this.getSale = ( number ) => {
+        this.getSale = number => {
             
             return dbSale.findAll( {
                 where: { number },
-                attributes: [ 'number', 'type', 'date', 'amount' ]
+                attributes: [ 'number', 'type', 'amount' ]
             })            
         }
-
-
-
     }
 }
 
