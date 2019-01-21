@@ -13,7 +13,7 @@ router.get('/', protected, async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', protected, async (req, res) => {
   try {
     const newProduct = await Product.create(req.body);
     res.send({

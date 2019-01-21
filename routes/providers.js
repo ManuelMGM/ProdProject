@@ -13,9 +13,8 @@ router.get('/', protected, async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', protected, async (req, res) => {
   try {
-    console.log(req.body);
     const newProvider = await Provider.create(req.body);
     res.send({
       id: newProvider.id,
@@ -43,11 +42,10 @@ router.get('/search/:id', protected, async (req, res) => {
 
 router.get('/:id/products', protected, async (req, res) => {
   try {
-    if (req.params.id && parseInt(req.params.id)) {
-      const productsList = await Provider.getProductsById(req.params.id);
-      productsList.length
-        ? res.send(productsList)
-        : res.send('Provider does not have any products');
+    const id = parseInt(req.params.id)
+    if (!isNaN(id)) {
+      const productsList = await Provider.getProductsById(id);
+      res.send(productsList);
     } else {
       res.statusMessage = 'Type of "id" does not match';
       res.status(400).end();
