@@ -13,16 +13,18 @@ router.get('/', protected, async (req, res) => {
   }
 });
 
-router.post('/', protected, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-      console.log(req.body)
+    console.log(req.body);
     const newProvider = await Provider.create(req.body);
-    res.send({ id: newProvider.id,
-        cuit: newProvider.cuit, 
-        name: newProvider.name,
-        razonSocial: newProvider.razonSocial,
-        apellido: newProvider.apellido,
-        email: newProvider.email });
+    res.send({
+      id: newProvider.id,
+      cuit: newProvider.cuit,
+      name: newProvider.name,
+      razonSocial: newProvider.razonSocial,
+      apellido: newProvider.apellido,
+      email: newProvider.email,
+    });
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
@@ -37,6 +39,23 @@ router.get('/search/:id', protected, async (req, res) => {
     console.error(e);
     res.sendStatus(400);
   }
-})
+});
+
+router.get('/:id/products', protected, async (req, res) => {
+  try {
+    if (req.params.id && parseInt(req.params.id)) {
+      const productsList = await Provider.getProductsById(req.params.id);
+      productsList.length
+        ? res.send(productsList)
+        : res.send('Provider does not have any products');
+    } else {
+      res.statusMessage = 'Type of "id" does not match';
+      res.status(400).end();
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
 
 module.exports = router;
