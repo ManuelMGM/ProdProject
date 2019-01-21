@@ -59,20 +59,29 @@ class Product {
       });
     };
 
-    this.getProduct = id => {
-      return dbProduct.findAll({
-        where: { id },
-        attributes: [
-          'id',
-          'codProduct',
-          'price',
-          'description',
-          'id_ProductType',
-          'stock',
-          'id_Provider',
-        ],
-      });
+    this.getProduct = async id => {
+      try {
+        return await dbProduct.findById(id);
+      } catch (e) {
+        console.error(e);
+      }
     };
+  }
+
+  getProductByDescription(term) {
+    const Op = Sequelize.Op;
+    return dbProduct.findAll({
+      where: { description: { [Op.iLike]: `%${term}%` } },
+      attributes: [
+        'id',
+        'codProduct',
+        'price',
+        'description',
+        'id_ProductType',
+        'stock',
+        'id_Provider',
+      ],
+    });
   }
 }
 
