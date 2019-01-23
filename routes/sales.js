@@ -3,17 +3,34 @@ const router = require('express').Router();
 const { protected } = require('../middlewares');
 const Sale = require('../Models/Sale');
 
-router.get('/', protected, async (req, res) => {
+const isValid = require('date-fns/is_valid');
+const parse = require('date-fns/parse');
+
+router.get('/', async (req, res) => {
   try {
-    const sales = await Sale.getAll();
-    res.send(sales);
+    let sales;
+    if (req.query.from && req.query.to) {
+      const regex = /^0[123]([./-])\d{2}\1\d{4}$/;
+      const from = regex.test(req.query.from)
+        ? parse(req.query.from)
+        : parse(+req.query.from);
+      const to = regex.test(req.query.to)
+        ? parse(req.query.to)
+        : parse(+req.query.to);
+      sales = await Sale.getSalesByRangeDates(from, to);
+      const amount = await Sale.getSalesSum();
+      res.send({sales, amount});
+    } else {
+      sales = await Sale.getAll();
+      res.send(sales);
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
   }
 });
 
-router.post('/', protected, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { type, amount, details } = req.body;
     if (details && details.length) {
