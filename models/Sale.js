@@ -1,6 +1,5 @@
 const { Sequelize, sequelize } = require('./db');
 const SaleDetail = require('./SaleDetail');
-const Op = Sequelize.Op;
 
 const dbSale = sequelize.define('sales', {
   // Could fail when persisting for first time. Should add unique prop to avoid
@@ -73,18 +72,8 @@ class Sale {
     };
   }
 
-  getSalesByDate(date) {
-    return dbSale.findAll({
-      where: {
-        createdAt: {
-          [Op.lte]: date,
-        },
-      },
-      attributes: ['number', 'type', 'amount'],
-    });
-  }
-
   getSalesByRangeDates(from, to) {
+    const Op = Sequelize.Op;
     return dbSale.findAll({
       where: {
         createdAt: {
@@ -95,8 +84,11 @@ class Sale {
     });
   }
 
-  getSalesSum() {
-    return dbSale.sum('amount');
+  getSalesSum(from, to) {
+    return sequelize.query(
+      'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to',
+      { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
+    );
   }
 }
 

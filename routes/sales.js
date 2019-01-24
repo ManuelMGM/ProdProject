@@ -22,7 +22,7 @@ router.get('/', protected, async (req, res) => {
         : parse(+req.query.to);
       if (isBefore(from, to)) {
         sales = await Sale.getSalesByRangeDates(from, to);
-        const amount = await Sale.getSalesSum();
+        const amount = await Sale.getSalesSum(from, to);
         res.send({ sales, amount });
       } else {
         res.status(400).send('Verify dates.');
