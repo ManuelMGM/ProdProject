@@ -52,7 +52,6 @@ class Sale {
 
         return sale.get({ plain: true });
       } catch (e) {
-        console.error(e);
         transaction.rollback();
         console.error(e);
       }

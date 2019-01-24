@@ -3,23 +3,18 @@ const router = require('express').Router();
 const { protected } = require('../middlewares');
 const Sale = require('../Models/Sale');
 
-const parse = require('date-fns/parse');
 const isBefore = require('date-fns/is_before');
+const dates = require('../utils/dates');
 
-router.get('/', protected, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     let sales;
     if (!req.query.from && !req.query.to) {
       sales = await Sale.getAll();
       res.send(sales);
     } else if (req.query.from && req.query.to) {
-      const regex = /^0[1-9]|1[0-2]([./-])\d{2}\1\d{4}$/;
-      const from = regex.test(req.query.from)
-        ? parse(req.query.from)
-        : parse(+req.query.from);
-      const to = regex.test(req.query.to)
-        ? parse(req.query.to)
-        : parse(+req.query.to);
+      const from = dates.stringToDate(req.query.from);
+      const to = dates.stringToDate(req.query.to);
       if (isBefore(from, to)) {
         sales = await Sale.getSalesByRangeDates(from, to);
         const amount = await Sale.getSalesSum(from, to);
