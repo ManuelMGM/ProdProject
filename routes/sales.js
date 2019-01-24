@@ -3,26 +3,32 @@ const router = require('express').Router();
 const { protected } = require('../middlewares');
 const Sale = require('../Models/Sale');
 
-const isValid = require('date-fns/is_valid');
 const parse = require('date-fns/parse');
+const isBefore = require('date-fns/is_before');
 
-router.get('/', async (req, res) => {
+router.get('/', protected, async (req, res) => {
   try {
     let sales;
-    if (req.query.from && req.query.to) {
-      const regex = /^0[123]([./-])\d{2}\1\d{4}$/;
+    if (!req.query.from && !req.query.to) {
+      sales = await Sale.getAll();
+      res.send(sales);
+    } else if (req.query.from && req.query.to) {
+      const regex = /^0[1-9]|1[0-2]([./-])\d{2}\1\d{4}$/;
       const from = regex.test(req.query.from)
         ? parse(req.query.from)
         : parse(+req.query.from);
       const to = regex.test(req.query.to)
         ? parse(req.query.to)
         : parse(+req.query.to);
-      sales = await Sale.getSalesByRangeDates(from, to);
-      const amount = await Sale.getSalesSum();
-      res.send({sales, amount});
+      if (isBefore(from, to)) {
+        sales = await Sale.getSalesByRangeDates(from, to);
+        const amount = await Sale.getSalesSum();
+        res.send({ sales, amount });
+      } else {
+        res.status(400).send('Verify dates.');
+      }
     } else {
-      sales = await Sale.getAll();
-      res.send(sales);
+      res.status(400).send('Both dates must be included.');
     }
   } catch (e) {
     console.error(e);
@@ -30,7 +36,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', protected, async (req, res) => {
   try {
     const { type, amount, details } = req.body;
     if (details && details.length) {
