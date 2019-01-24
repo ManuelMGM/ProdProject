@@ -25,7 +25,6 @@ class Sale {
         );
         number =
           parseInt(number[0].max, 10) > 0 ? parseInt(number[0].max, 10) + 1 : 1;
-
         transaction = await sequelize.transaction();
         const sale = await dbSale.create(
           {
@@ -70,6 +69,25 @@ class Sale {
         attributes: ['number', 'type', 'amount'],
       });
     };
+  }
+
+  getSalesByRangeDates(from, to) {
+    const Op = Sequelize.Op;
+    return dbSale.findAll({
+      where: {
+        createdAt: {
+          [Op.between]: [from, to],
+        },
+      },
+      attributes: ['number', 'type', 'amount'],
+    });
+  }
+
+  getSalesSum(from, to) {
+    return sequelize.query(
+      'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to',
+      { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
+    );
   }
 }
 

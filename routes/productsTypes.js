@@ -26,7 +26,7 @@ router.post('/', protected, async (req, res) => {
 router.get('/search/:description', protected, async (req, res) => {
   try {
     const productType = await ProductType.getProduct(req.params.description);
-    res.send(productType)
+    res.send(productType);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

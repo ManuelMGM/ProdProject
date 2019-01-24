@@ -3,10 +3,28 @@ const router = require('express').Router();
 const { protected } = require('../middlewares');
 const Sale = require('../Models/Sale');
 
-router.get('/', protected, async (req, res) => {
+const isBefore = require('date-fns/is_before');
+const dates = require('../utils/dates');
+
+router.get('/', async (req, res) => {
   try {
-    const sales = await Sale.getAll();
-    res.send(sales);
+    let sales;
+    if (!req.query.from && !req.query.to) {
+      sales = await Sale.getAll();
+      res.send(sales);
+    } else if (req.query.from && req.query.to) {
+      const from = dates.stringToDate(req.query.from);
+      const to = dates.stringToDate(req.query.to);
+      if (isBefore(from, to)) {
+        sales = await Sale.getSalesByRangeDates(from, to);
+        const amount = await Sale.getSalesSum(from, to);
+        res.send({ sales, amount });
+      } else {
+        res.status(400).send('Verify dates.');
+      }
+    } else {
+      res.status(400).send('Both dates must be included.');
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

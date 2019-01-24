@@ -42,13 +42,12 @@ router.get('/search/:id', protected, async (req, res) => {
 
 router.get('/:id/products', protected, async (req, res) => {
   try {
-    const id = parseInt(req.params.id)
+    const id = parseInt(req.params.id);
     if (!isNaN(id)) {
       const productsList = await Provider.getProductsById(id);
       res.send(productsList);
     } else {
-      res.statusMessage = 'Type of "id" does not match';
-      res.status(400).end();
+      res.status(400).send('Type of "id" does not match');
     }
   } catch (e) {
     console.error(e);
