@@ -55,4 +55,37 @@ router.get('/:id/products', protected, async (req, res) => {
   }
 });
 
+router.put('/:providerId', protected, async (req, res, next) => {
+  try {
+    if (req.params.providerId) {
+      const provider = await Provider.update(req.body);
+      provider
+        ? res.send(provider)
+        : res.status(400).send('Validate properties values');
+    } else {
+      res.send({});
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
+router.put('/', protected, async (req, res, next) => {
+  try {
+    let provider = req.body.providers;
+    if (provider && Array.isArray(provider)) {
+      provider = await Provider.update(provider);
+      provider
+        ? res.send(provider)
+        : res.status(400).send('Validate properties values');
+    } else {
+      res.status(400).send('validate properties format');
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
 module.exports = router;

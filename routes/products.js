@@ -57,4 +57,39 @@ router.post('/', protected, async (req, res) => {
   }
 });
 
+router.put('/:productId', protected, async (req, res, next) => {
+  try {
+    if (req.params.productId) {
+      if (Product.validateAttributes(req.body)) {
+        const product = await Product.update(req.body);
+        res.send(product);
+      } else {
+        res.status(400).send('Validate properties values');
+      }
+    } else {
+      res.send({});
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
+router.put('/', protected, async (req, res, next) => {
+  try {
+    let product = req.body.products;
+    if (product && Array.isArray(product)) {
+      product = await Product.update(product);
+      product
+        ? res.send(product)
+        : res.status(400).send('Validate properties values');
+    } else {
+      res.status(400).send('validate properties format');
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
 module.exports = router;
