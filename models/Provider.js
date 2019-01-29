@@ -29,15 +29,16 @@ class Provider {
 
     this.getAll = () => {
       return dbProvider.findAll({
-        attributes: ['cuit', 'name', 'razonSocial', 'apellido', 'email'],
+        attributes: ['id', 'cuit', 'name', 'razonSocial', 'apellido', 'email'],
       });
     };
 
-    this.getProvider = id => {
-      return dbProvider.findAll({
-        where: { id },
-        attributes: ['cuit', 'name', 'razonSocial', 'apellido', 'email'],
-      });
+    this.getProvider = async id => {
+      try {
+        return await dbProvider.findById(id);
+      } catch (e) {
+        console.error(e);
+      }
     };
   }
 
