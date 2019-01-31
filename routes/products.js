@@ -9,7 +9,7 @@ router.get('/search', protected, async (req, res) => {
       const product = await Product.getProductByDescription(req.query.term);
       res.send(product);
     } else {
-      res.status(400).send('Param "term" did not found');
+      res.status(400).send('Param "term" did not found.');
     }
   } catch (e) {
     console.error(e);
@@ -61,10 +61,10 @@ router.put('/:productId', protected, async (req, res, next) => {
   try {
     if (req.params.productId) {
       if (Product.validateAttributes(req.body)) {
-        const product = await Product.update(req.body);
+        const product = await Product.updateProduct(req.body);
         res.send(product);
       } else {
-        res.status(400).send('Validate properties values');
+        res.status(400).send('Validate properties values.');
       }
     } else {
       res.send({});
@@ -79,12 +79,12 @@ router.put('/', protected, async (req, res, next) => {
   try {
     let product = req.body.products;
     if (product && Array.isArray(product)) {
-      product = await Product.update(product);
+      product = await Product.updateMultiple(product);
       product
         ? res.send(product)
-        : res.status(400).send('Validate properties values');
+        : res.status(400).send('Validate properties values.');
     } else {
-      res.status(400).send('validate properties format');
+      res.status(400).send('Validate properties format.');
     }
   } catch (e) {
     console.error(e);

@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
   try {
     const user = await User.login(req.body);
     if (user) {
-      jwt.sign({ user }, 'privatekey', { expiresIn: '1h' }, (err, token) => {
+      jwt.sign({ user }, 'privatekey', { expiresIn: '24h' }, (err, token) => {
         if (err) {
           console.log(err);
         }

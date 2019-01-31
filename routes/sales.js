@@ -4,7 +4,7 @@ const { protected } = require('../middlewares');
 const Sale = require('../Models/Sale');
 
 const isBefore = require('date-fns/is_before');
-const dates = require('../utils/dates');
+const { stringToDate } = require('../utils/dates');
 
 router.get('/', async (req, res) => {
   try {
@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
       sales = await Sale.getAll();
       res.send(sales);
     } else if (req.query.from && req.query.to) {
-      const from = dates.stringToDate(req.query.from);
-      const to = dates.stringToDate(req.query.to);
+      const from = stringToDate(req.query.from);
+      const to = stringToDate(req.query.to);
       if (isBefore(from, to)) {
         sales = await Sale.getSalesByRangeDates(from, to);
         const amount = await Sale.getSalesSum(from, to);
@@ -34,16 +34,8 @@ router.get('/', async (req, res) => {
 router.post('/', protected, async (req, res) => {
   try {
     const { type, amount, details } = req.body;
-    if (details && details.length) {
-      const newSale = await Sale.create({ type, amount, details });
-      res.send({
-        number: newSale.number,
-        type: newSale.type,
-        amount: newSale.amount,
-      });
-    } else {
-      res.sendStatus(400);
-    }
+    const newSale = await Sale.create({ type, amount, details });
+    newSale ? res.send(newSale) : res.status(400).send('Validate data format.');
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

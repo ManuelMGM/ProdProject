@@ -1,5 +1,5 @@
 const { Sequelize, sequelize } = require('./db');
-const value = require('../utils/validate');
+const { isString, isNum } = require('../utils/validate');
 
 const dbProduct = sequelize.define('products', {
   codProduct: { type: Sequelize.STRING, allowNull: false, unique: true },
@@ -69,44 +69,35 @@ class Product {
     };
   }
 
-  async update(product) {
-    try {
-      if (this.validateAttributes(product)) {
-        if (!Array.isArray(product)) {
-          return await dbProduct.update(
-            { ...product, updateAt: Date.now() },
-            { returning: true, where: { id: product.id } }
-          );
-        } else {
-          let transaction;
-          try {
-            await sequelize.sync();
-            transaction = await sequelize.transaction();
+  async updateMultiple(products) {
+    if (this.validateAttributes(products)) {
 
-            let result = [];
-            await product.forEach(async item => {
-              await result.push(
-                dbProduct.update(
-                  { ...item, updateAt: Date.now() },
-                  { returning: true, where: { id: item.id } },
-                  { transaction }
-                )
-              );
-            });
-
-            await transaction.commit();
-
+      return sequelize
+        .transaction()
+        .then(t => {
+          return sequelize.Promise.map(products, prod => {
+            return dbProduct
+              .update(
+                { ...prod, updateAt: Date.now() },
+                { returning: true, where: { id: prod.id }, transaction: t }
+              )
+              .then(result => {
+                const productChanged = result[1][0].dataValues;
+                return productChanged;
+              });
+          }).then(result => {
+            t.commit();
             return result;
-          } catch (e) {
-            await transaction.rollback();
-            console.error(e);
+          });
+        })
+        .then(
+          res => res,
+          err => {
+            console.error(err);
           }
-        }
-      } else {
-        return false;
-      }
-    } catch (e) {
-      console.error(e);
+        );
+    } else {
+      return false;
     }
   }
 
@@ -143,19 +134,30 @@ class Product {
 
   validateProduct(product) {
     if (
-      !(product.description == null) &&
-      !value.isString(product.description)
+      product.hasOwnProperty('description') &&
+      !isString(product.description)
     ) {
       return false;
     }
-    if (!(product.codProduct == null) && !value.isString(product.codProduct)) {
+    if (product.hasOwnProperty('codProduct') && !isString(product.codProduct)) {
       return false;
     }
-    if (!product.id || !value.isNum(product.id)) {
+    if (!product.id || !isNum(product.id)) {
       return false;
     }
 
     return true;
+  }
+
+  async updateProduct(product) {
+    try {
+      return await dbProduct.update(
+        { ...product, updateAt: Date.now() },
+        { returning: true, where: { id: product.id } }
+      );
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 

@@ -1,5 +1,5 @@
 const { Sequelize, sequelize } = require('./db');
-const value = require('../utils/validate');
+const { isString, isNum } = require('../utils/validate');
 
 const dbProvider = sequelize.define('providers', {
   cuit: { type: Sequelize.BIGINT, allowNull: false, unique: true },
@@ -33,61 +33,26 @@ class Provider {
         attributes: ['cuit', 'name', 'razonSocial', 'apellido', 'email'],
       });
     };
-
-    this.getProvider = id => {
-      return dbProvider.findAll({
-        where: { id },
-        attributes: ['cuit', 'name', 'razonSocial', 'apellido', 'email'],
-      });
-    };
   }
 
-  async update(provider) {
+  async getProvider(id) {
     try {
-      if (this.validateAttributes(provider)) {
-        if (!Array.isArray(provider)) {
-          return await dbProvider.update(
-            { ...provider, updateAt: Date.now() },
-            { returning: true, where: { id: provider.id } }
-          );
-        } else {
-          let transaction;
-          try {
-            await sequelize.sync();
-            transaction = await sequelize.transaction();
-
-            let result = [];
-            await provider.forEach(async item => {
-              await result.push(
-                await dbProvider.update(
-                  { ...item, updateAt: Date.now() },
-                  { returning: true, where: { id: item.id } },
-                  { transaction }
-                )
-              );
-            });
-
-            await transaction.commit();
-
-            return result;
-          } catch (e) {
-            await transaction.rollback();
-            console.error(e);
-          }
-        }
-      } else {
-        return false;
-      }
+      return await dbProvider.findById(id);
     } catch (e) {
       console.error(e);
     }
   }
 
-  async getProductsById(id) {
-    return await sequelize.query(
-      'SELECT "codProduct", description FROM public.products WHERE "id_Provider" = ?',
-      { replacements: [id], type: sequelize.QueryTypes.SELECT }
-    );
+  async getProductsByProvider(id) {
+    try {
+      return await sequelize.query(
+        'SELECT "codProduct", description FROM public.products WHERE "id_Provider" = ?',
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+      );
+    } catch(e) {
+      console.error(e);
+    }
+    
   }
 
   validateAttributes(provider) {
@@ -105,17 +70,30 @@ class Provider {
   }
 
   validateProvider(provider) {
-    if (!(provider.name == null) && !value.isString(provider.name)) {
+    if (product.hasOwnProperty('name') && !isString(provider.name)) {
       return false;
     }
-    if (!(provider.cuit == null) && !value.isNum(provider.cuit)) {
+    if (product.hasOwnProperty('cuit') && !isNum(provider.cuit)) {
       return false;
     }
-    if (!provider.id || !value.isNum(provider.id)) {
+    if (!provider.id || !isNum(provider.id)) {
       return false;
     }
+
     return true;
   }
+
+  async updateProvider(provider) {
+    try {
+      return await dbProvider.update(
+        { ...provider, updateAt: Date.now() },
+        { returning: true, where: { id: provider.id } }
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
 }
 
 module.exports = new Provider();
