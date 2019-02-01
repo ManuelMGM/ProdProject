@@ -9,7 +9,7 @@ router.get('/search', protected, async (req, res) => {
       const product = await Product.getProductByDescription(req.query.term);
       res.send(product);
     } else {
-      res.status(400).send('Param "term" did not found.');
+      res.send({});
     }
   } catch (e) {
     console.error(e);
@@ -77,11 +77,11 @@ router.put('/:productId', protected, async (req, res, next) => {
 
 router.put('/', protected, async (req, res, next) => {
   try {
-    let product = req.body.products;
-    if (product && Array.isArray(product)) {
-      product = await Product.updateMultiple(product);
-      product
-        ? res.send(product)
+    const products = req.body.products;
+    if (products && Array.isArray(products)) {
+      updatedProducts = await Product.updateMultiple(products);
+      updatedProducts
+        ? res.send(updatedProducts)
         : res.status(400).send('Validate properties values.');
     } else {
       res.status(400).send('Validate properties format.');

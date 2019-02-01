@@ -38,25 +38,24 @@ class Sale {
                 },
                 { transaction: t }
               )
-              .then(newSale => {
+              .then(sale => {
                 return sequelize.Promise.map(details, item => {
                   return SaleDetail.create(
                     {
-                      saleNumber: newSale.number,
-                      type: newSale.type,
+                      saleNumber: sale.number,
+                      type: sale.type,
                       id_Product: item.id_Product,
                       price: item.price,
                       quantity: item.quantity,
                     },
                     { transaction: t }
-                  ).then(newSale => {
-                    return newSale;
-                  });
+                  ).then(fullSale => fullSale);
                 });
               })
-              .then(result => {
+              .then(newSale => {
                 t.commit();
-                return result;
+
+                return newSale;
               });
           })
           .then(
@@ -137,16 +136,17 @@ class Sale {
 
   validateDetails(details) {
     if (details && details.length) {
-      for (let i = 0; i < details.length; i++) {
+      let res = true;
+      details.some(element => {
         if (
-          details[i].hasOwnProperty('id_Product') &&
-          !isNum(details[i].id_Product)
+          element.hasOwnProperty('id_Product') &&
+          !isNum(element.id_Product)
         ) {
-          return false;
+          res = false;
         }
-      }
+      });
 
-      return true;
+      return res;
     }
 
     return false;

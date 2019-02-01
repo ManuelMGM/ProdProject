@@ -71,7 +71,6 @@ class Product {
 
   async updateMultiple(products) {
     if (this.validateAttributes(products)) {
-
       return sequelize
         .transaction()
         .then(t => {
@@ -82,12 +81,13 @@ class Product {
                 { returning: true, where: { id: prod.id }, transaction: t }
               )
               .then(result => {
-                const productChanged = result[1][0].dataValues;
-                return productChanged;
+                const newProduct = result[1][0].dataValues;
+                return newProduct;
               });
-          }).then(result => {
+          }).then(productsChanged => {
             t.commit();
-            return result;
+
+            return productsChanged;
           });
         })
         .then(
@@ -103,32 +103,36 @@ class Product {
 
   async getProductByDescription(term) {
     const Op = Sequelize.Op;
-
-    return await dbProduct.findAll({
-      where: { description: { [Op.iLike]: `%${term}%` } },
-      attributes: [
-        'id',
-        'codProduct',
-        'price',
-        'description',
-        'id_ProductType',
-        'stock',
-        'id_Provider',
-      ],
-    });
+    try {
+      return await dbProduct.findAll({
+        where: { description: { [Op.iLike]: `%${term}%` } },
+        attributes: [
+          'id',
+          'codProduct',
+          'price',
+          'description',
+          'id_ProductType',
+          'stock',
+          'id_Provider',
+        ],
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   validateAttributes(product) {
     if (!Array.isArray(product)) {
       return this.validateProduct(product);
     } else {
-      for (let i = 0; i < product.length; i++) {
-        if (!this.validateProduct(product[i])) {
-          return false;
+      let res = true;
+      product.some(element => {
+        if (!this.validateProduct(element)) {
+          res = false;
         }
-      }
+      });
 
-      return true;
+      return res;
     }
   }
 
