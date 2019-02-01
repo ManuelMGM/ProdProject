@@ -1,4 +1,5 @@
 const { Sequelize, sequelize } = require('./db');
+const { isString, isNum } = require('../utils/validate');
 
 const dbProduct = sequelize.define('products', {
   codProduct: { type: Sequelize.STRING, allowNull: false, unique: true },
@@ -11,9 +12,9 @@ const dbProduct = sequelize.define('products', {
     type: Sequelize.INTEGER,
     references: { model: 'providers', key: 'id' },
   },
-  stock: { type: Sequelize.FLOAT },
-  minimumStock: { type: Sequelize.FLOAT },
-  price: { type: Sequelize.FLOAT },
+  stock: { type: Sequelize.FLOAT, validate: { min: 0 } },
+  minimumStock: { type: Sequelize.FLOAT, validate: { min: 0 } },
+  price: { type: Sequelize.FLOAT, validate: { min: 0 } },
 });
 
 class Product {
@@ -61,7 +62,6 @@ class Product {
 
     this.getProduct = async id => {
       try {
-        
         return await dbProduct.findById(id);
       } catch (e) {
         console.error(e);
@@ -69,21 +69,99 @@ class Product {
     };
   }
 
-  getProductByDescription(term) {
-    const Op = Sequelize.Op;
+  async updateMultiple(products) {
+    if (this.validateAttributes(products)) {
+      return sequelize
+        .transaction()
+        .then(t => {
+          return sequelize.Promise.map(products, prod => {
+            return dbProduct
+              .update(
+                { ...prod, updateAt: Date.now() },
+                { returning: true, where: { id: prod.id }, transaction: t }
+              )
+              .then(result => {
+                const newProduct = result[1][0].dataValues;
+                return newProduct;
+              });
+          }).then(productsChanged => {
+            t.commit();
 
-    return dbProduct.findAll({
-      where: { description: { [Op.iLike]: `%${term}%` } },
-      attributes: [
-        'id',
-        'codProduct',
-        'price',
-        'description',
-        'id_ProductType',
-        'stock',
-        'id_Provider',
-      ],
-    });
+            return productsChanged;
+          });
+        })
+        .then(
+          res => res,
+          err => {
+            console.error(err);
+          }
+        );
+    } else {
+      return false;
+    }
+  }
+
+  async getProductByDescription(term) {
+    const Op = Sequelize.Op;
+    try {
+      return await dbProduct.findAll({
+        where: { description: { [Op.iLike]: `%${term}%` } },
+        attributes: [
+          'id',
+          'codProduct',
+          'price',
+          'description',
+          'id_ProductType',
+          'stock',
+          'id_Provider',
+        ],
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  validateAttributes(product) {
+    if (!Array.isArray(product)) {
+      return this.validateProduct(product);
+    } else {
+      let res = true;
+      product.some(element => {
+        if (!this.validateProduct(element)) {
+          res = false;
+        }
+      });
+
+      return res;
+    }
+  }
+
+  validateProduct(product) {
+    if (
+      product.hasOwnProperty('description') &&
+      !isString(product.description)
+    ) {
+      return false;
+    }
+    if (product.hasOwnProperty('codProduct') && !isString(product.codProduct)) {
+      return false;
+    }
+    if (!product.id || !isNum(product.id)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async updateProduct(product) {
+    try {
+      return await dbProduct.update(
+        { ...product, updateAt: Date.now() },
+        { returning: true, where: { id: product.id } }
+      );
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 

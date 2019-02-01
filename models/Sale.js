@@ -1,5 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
 const SaleDetail = require('./SaleDetail');
+const { isString, isNum } = require('../utils/validate');
 
 const dbSale = sequelize.define('sales', {
   // Could fail when persisting for first time. Should add unique prop to avoid
@@ -16,8 +17,7 @@ const dbSale = sequelize.define('sales', {
 class Sale {
   constructor() {
     this.create = async ({ type, amount, details }) => {
-      let transaction;
-      try {
+      if (this.validateCreate({ type, amount, details })) {
         await sequelize.sync();
         let number = await sequelize.query(
           'SELECT MAX("number") FROM sales WHERE type = ?',
@@ -25,69 +25,131 @@ class Sale {
         );
         number =
           parseInt(number[0].max, 10) > 0 ? parseInt(number[0].max, 10) + 1 : 1;
-        transaction = await sequelize.transaction();
-        const sale = await dbSale.create(
-          {
-            number,
-            type,
-            amount,
-          },
-          { transaction }
-        );
 
-        details.forEach(async item => {
-          await SaleDetail.create(
-            {
-              saleNumber: number,
-              type,
-              id_Product: item.id_Product,
-              price: item.price,
-              quantity: item.quantity,
-            },
-            { transaction }
+        return sequelize
+          .transaction()
+          .then(t => {
+            return dbSale
+              .create(
+                {
+                  number,
+                  type,
+                  amount,
+                },
+                { transaction: t }
+              )
+              .then(sale => {
+                return sequelize.Promise.map(details, item => {
+                  return SaleDetail.create(
+                    {
+                      saleNumber: sale.number,
+                      type: sale.type,
+                      id_Product: item.id_Product,
+                      price: item.price,
+                      quantity: item.quantity,
+                    },
+                    { transaction: t }
+                  ).then(fullSale => fullSale);
+                });
+              })
+              .then(newSale => {
+                t.commit();
+
+                return newSale;
+              });
+          })
+          .then(
+            res => res,
+            err => {
+              console.error(err);
+            }
           );
+      } else {
+        return false;
+      }
+    };
+
+    this.getAll = async () => {
+      try {
+        return await dbSale.findAll({
+          attributes: ['number', 'type', 'amount'],
         });
-
-        await transaction.commit();
-
-        return sale.get({ plain: true });
       } catch (e) {
-        transaction.rollback();
         console.error(e);
       }
     };
 
-    this.getAll = () => {
-      return dbSale.findAll({
-        attributes: ['number', 'type', 'amount'],
-      });
-    };
-
-    this.getSale = number => {
-      return dbSale.findAll({
-        where: { number },
-        attributes: ['number', 'type', 'amount'],
-      });
+    this.getSale = async number => {
+      try {
+        return await dbSale.findAll({
+          where: { number },
+          attributes: ['number', 'type', 'amount'],
+        });
+      } catch (e) {
+        console.error(e);
+      }
     };
   }
 
-  getSalesByRangeDates(from, to) {
+  async getSalesByRangeDates(from, to) {
     const Op = Sequelize.Op;
-    return dbSale.findAll({
-      where: {
-        createdAt: {
-          [Op.between]: [from, to],
+    try {
+      return await dbSale.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [from, to],
+          },
         },
-      },
-      attributes: ['number', 'type', 'amount'],
-    });
+        attributes: ['number', 'type', 'amount'],
+      });
+    } catch (e) {
+      console.log(e);
+    }
   }
 
-  getSalesSum(from, to) {
-    return sequelize.query(
-      'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to',
-      { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
-    );
+  async getSalesSum(from, to) {
+    try {
+      return await sequelize.query(
+        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to',
+        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  validateCreate({ type, amount, details }) {
+    if (!type || !isString(type)) {
+      return false;
+    }
+
+    if (!amount || !isNum(amount)) {
+      return false;
+    }
+
+    if (!this.validateDetails(details)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  validateDetails(details) {
+    if (details && details.length) {
+      let res = true;
+      details.some(element => {
+        if (
+          element.hasOwnProperty('id_Product') &&
+          !isNum(element.id_Product)
+        ) {
+          res = false;
+        }
+      });
+
+      return res;
+    }
+
+    return false;
   }
 }
 
