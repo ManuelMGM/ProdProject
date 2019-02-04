@@ -6,7 +6,7 @@ const Sale = require('../Models/Sale');
 const isBefore = require('date-fns/is_before');
 const { stringToDate } = require('../utils/dates');
 
-router.get('/', async (req, res) => {
+router.get('/', protected, async (req, res) => {
   try {
     let sales;
     if (!req.query.from && !req.query.to) {
@@ -33,8 +33,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', protected, async (req, res) => {
   try {
-    const { type, amount, details } = req.body;
-    const newSale = await Sale.create({ type, amount, details });
+    const { type, amount, id_User, details } = req.body;
+    const newSale = await Sale.create({ type, amount, id_User, details });
     newSale ? res.send(newSale) : res.status(400).send('Validate data format.');
   } catch (e) {
     console.error(e);

@@ -12,11 +12,15 @@ const dbSale = sequelize.define('sales', {
   },
   type: { type: Sequelize.STRING, allowNull: false, primaryKey: true },
   amount: { type: Sequelize.FLOAT },
+  id_User: {
+    type: Sequelize.INTEGER,
+    references: { model: 'usersTypes', key: 'id' },
+  },
 });
 
 class Sale {
   constructor() {
-    this.create = async ({ type, amount, details }) => {
+    this.create = async ({ type, amount, id_User, details }) => {
       if (this.validateCreate({ type, amount, details })) {
         await sequelize.sync();
         let number = await sequelize.query(
@@ -35,6 +39,7 @@ class Sale {
                   number,
                   type,
                   amount,
+                  id_User,
                 },
                 { transaction: t }
               )

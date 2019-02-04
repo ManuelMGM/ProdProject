@@ -11,6 +11,10 @@ const dbUser = sequelize.define('user', {
     validate: { isEmail: true },
   },
   pwd: { type: Sequelize.STRING, allowNull: false },
+  id_UserType: {
+    type: Sequelize.INTEGER,
+    references: { model: 'usersTypes', key: 'id' },
+  },
 });
 
 const hashPwd = async pwd => {
