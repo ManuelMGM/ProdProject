@@ -43,14 +43,19 @@ router.get('/:id', protected, async (req, res) => {
 
 router.post('/', protected, async (req, res) => {
   try {
-    const newProduct = await Product.create(req.body);
-    res.send({
-      id: newProduct.id,
-      price: newProduct.price,
-      description: newProduct.description,
-      typeProduct: newProduct.typeProduct,
-      id_Provider: newProduct.id_Provider,
-    });
+    if (req.body.codProduct && req.body.description) {
+      const newProduct = await Product.create(req.body);
+      res.send({
+        id: newProduct.id,
+        salePrice: newProduct.salePrice,
+        costPrice: newProduct.costPrice,
+        description: newProduct.description,
+        typeProduct: newProduct.typeProduct,
+        id_Provider: newProduct.id_Provider,
+      });
+    } else {
+      res.status(400).send('Validate properties.');
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

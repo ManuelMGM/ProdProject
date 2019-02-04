@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const users = require('./users');
+const usersTypes = require('./usersTypes');
 const products = require('./products');
 const productsTypes = require('./productsTypes');
 const providers = require('./providers');
@@ -18,6 +19,7 @@ router.use(
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use('/users', users);
+router.use('/usersTypes', usersTypes);
 router.use('/products', products);
 router.use('/providers', providers);
 router.use('/sales', sales);

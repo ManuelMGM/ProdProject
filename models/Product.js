@@ -14,7 +14,8 @@ const dbProduct = sequelize.define('products', {
   },
   stock: { type: Sequelize.FLOAT, validate: { min: 0 } },
   minimumStock: { type: Sequelize.FLOAT, validate: { min: 0 } },
-  price: { type: Sequelize.FLOAT, validate: { min: 0 } },
+  salePrice: { type: Sequelize.FLOAT, validate: { min: 0 } },
+  costPrice: { type: Sequelize.FLOAT, validate: { min: 0 } },
 });
 
 class Product {
@@ -26,7 +27,8 @@ class Product {
       id_Provider,
       stock,
       minimumStock,
-      price,
+      salePrice,
+      costPrice,
     }) => {
       try {
         await sequelize.sync();
@@ -37,7 +39,8 @@ class Product {
           id_Provider,
           stock,
           minimumStock,
-          price,
+          salePrice,
+          costPrice,
         });
 
         return result;
@@ -51,7 +54,8 @@ class Product {
         attributes: [
           'id',
           'codProduct',
-          'price',
+          'salePrice',
+          'costPrice',
           'description',
           'id_ProductType',
           'stock',
@@ -109,7 +113,8 @@ class Product {
         attributes: [
           'id',
           'codProduct',
-          'price',
+          'salePrice',
+          'costPrice',
           'description',
           'id_ProductType',
           'stock',

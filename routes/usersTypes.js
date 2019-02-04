@@ -1,12 +1,12 @@
 const router = require('express').Router();
 
 const { protected } = require('../middlewares');
-const ProductType = require('../models/ProductType');
+const UserType = require('../models/UserType');
 
 router.get('/', protected, async (req, res) => {
   try {
-    const productsTypes = await ProductType.getAll();
-    res.send(productsTypes);
+    const usersTypes = await UserType.getAll();
+    res.send(usersTypes);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
@@ -15,7 +15,7 @@ router.get('/', protected, async (req, res) => {
 
 router.post('/', protected, async (req, res) => {
   try {
-    const newType = await ProductType.create(req.body);
+    const newType = await UserType.create(req.body);
     res.send({ description: newType.description });
   } catch (e) {
     console.error(e);
@@ -25,10 +25,8 @@ router.post('/', protected, async (req, res) => {
 
 router.get('/search/:description', protected, async (req, res) => {
   try {
-    const productType = await ProductType.getProductType(
-      req.params.description
-    );
-    res.send(productType);
+    const userType = await UserType.getUserType(req.params.description);
+    res.send(userType);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
