@@ -41,23 +41,14 @@ class Provider {
 
     this.getAll = () => {
       return dbProvider.findAll({
-        attributes: [
-          'id',
-          'cuit',
-          'name',
-          'razonSocial',
-          'apellido',
-          'email',
-          'phoneNumber1',
-          'phoneNumber2',
-        ],
+        attributes: ['id', 'cuit', 'name', 'razonSocial', 'apellido', 'email'],
       });
     };
   }
 
   async getProvider(id) {
     try {
-      return await dbProvider.findById(id);
+      return await dbProvider.findByPk(id);
     } catch (e) {
       console.error(e);
     }

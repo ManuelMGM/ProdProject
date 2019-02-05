@@ -66,7 +66,7 @@ class Product {
 
     this.getProduct = async id => {
       try {
-        return await dbProduct.findById(id);
+        return await dbProduct.findByPk(id);
       } catch (e) {
         console.error(e);
       }
