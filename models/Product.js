@@ -109,7 +109,12 @@ class Product {
     const Op = Sequelize.Op;
     try {
       return await dbProduct.findAll({
-        where: { description: { [Op.iLike]: `%${term}%` } },
+        where: {
+          [Op.or]: [
+            { description: { [Op.iLike]: `%${term}%` } },
+            { codProduct: { [Op.iLike]: `%${term}%` } },
+          ],
+        },
         attributes: [
           'id',
           'codProduct',

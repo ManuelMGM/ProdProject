@@ -42,6 +42,7 @@ class Provider {
     this.getAll = () => {
       return dbProvider.findAll({
         attributes: [
+          'id',
           'cuit',
           'name',
           'razonSocial',
@@ -65,7 +66,7 @@ class Provider {
   async getProductsByProvider(id) {
     try {
       return await sequelize.query(
-        'SELECT "p"."codProduct", p.description, pt.description, p.stock, p.salePrice, p.costPrice' +
+        'SELECT p.id, "p"."codProduct", p.description, pt.description, p.stock, p."salePrice", p."costPrice"' +
           ' FROM public.products p INNER JOIN "public"."productsTypes" pt ON p."id_ProductType" = pt.id' +
           ' WHERE "id_Provider" = ?',
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
