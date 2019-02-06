@@ -165,13 +165,19 @@ class Product {
 
   async updateProduct(product) {
     try {
-      return await dbProduct.update(
+      const result = await dbProduct.update(
         { ...product, updateAt: Date.now() },
         { returning: true, where: { id: product.id } }
       );
+
+      return result[1][0].dataValues;
     } catch (e) {
       console.error(e);
     }
+  }
+
+  async findByProvider(providerId) {
+    return dbProduct.findAll({ where: { id_Provider: providerId } });
   }
 }
 
