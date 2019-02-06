@@ -41,7 +41,16 @@ class Provider {
 
     this.getAll = () => {
       return dbProvider.findAll({
-        attributes: ['id', 'cuit', 'name', 'razonSocial', 'apellido', 'email'],
+        attributes: [
+          'id',
+          'cuit',
+          'name',
+          'razonSocial',
+          'apellido',
+          'email',
+          'phoneNumber1',
+          'phoneNumber2',
+        ],
       });
     };
   }
