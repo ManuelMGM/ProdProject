@@ -63,7 +63,7 @@ class Sale {
                       return Product.model
                         .findByPk(id_Product, { transaction })
                         .then(product => {
-                          if (product.stock > quantity) {
+                          if (product.stock >= quantity) {
                             const stock = product.stock - quantity;
                             const productData = { id: id_Product, stock };
                             return Product.model
@@ -162,7 +162,7 @@ class Sale {
       return false;
     }
 
-    if (!amount || !isNum(amount)) {
+    if (!amount || !isNum(amount) || !(amount > 0)) {
       return false;
     }
 
@@ -181,12 +181,16 @@ class Sale {
     if (details && details.length) {
       let res = true;
       details.some(element => {
-        if (
-          element.hasOwnProperty('id_Product') &&
-          !isNum(element.id_Product)
-        ) {
+        if (!element.id_Product || !isNum(element.id_Product)) {
           res = false;
         }
+        if (!element.price || !isNum(element.price) || !(element.price > 0)) {
+          res = false;
+        }
+        if (!element.quantity || !isNum(element.quantity) || !(element.quantity > 0)) {
+          res = false;
+        }
+        
       });
 
       return res;
