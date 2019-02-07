@@ -35,7 +35,7 @@ router.post('/', protected, async (req, res) => {
   try {
     const { type, amount, id_User, details } = req.body;
     const newSale = await Sale.create({ type, amount, id_User, details });
-    newSale ? res.send(newSale) : res.status(400).send('Validate data format.');
+    newSale ? res.send('SALE COMMITED') : res.status(400).send('Validate data format.');
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

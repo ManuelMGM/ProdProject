@@ -20,6 +20,7 @@ const dbProduct = sequelize.define('products', {
 
 class Product {
   constructor() {
+    this.model = dbProduct;
     this.create = async ({
       codProduct,
       description,

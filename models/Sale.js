@@ -1,5 +1,7 @@
 const { Sequelize, sequelize } = require('./db');
 const SaleDetail = require('./SaleDetail');
+const Product = require('./Product');
+
 const { isString, isNum } = require('../utils/validate');
 
 const dbSale = sequelize.define('sales', {
@@ -21,7 +23,7 @@ const dbSale = sequelize.define('sales', {
 class Sale {
   constructor() {
     this.create = async ({ type, amount, id_User, details }) => {
-      if (this.validateCreate({ type, amount, details })) {
+      if (this.validateCreate({ type, amount, id_User, details })) {
         await sequelize.sync();
         let number = await sequelize.query(
           'SELECT MAX("number") FROM sales WHERE type = ?',
@@ -32,7 +34,7 @@ class Sale {
 
         return sequelize
           .transaction()
-          .then(t => {
+          .then(transaction => {
             return dbSale
               .create(
                 {
@@ -41,27 +43,59 @@ class Sale {
                   amount,
                   id_User,
                 },
-                { transaction: t }
+                { transaction }
               )
               .then(sale => {
                 return sequelize.Promise.map(details, item => {
-                  return SaleDetail.create(
-                    {
-                      saleNumber: sale.number,
-                      type: sale.type,
-                      id_Product: item.id_Product,
-                      price: item.price,
-                      quantity: item.quantity,
-                    },
-                    { transaction: t }
-                  ).then(fullSale => fullSale);
+                  return SaleDetail.model
+                    .create(
+                      {
+                        saleNumber: sale.number,
+                        type: sale.type,
+                        id_Product: item.id_Product,
+                        price: item.price,
+                        quantity: item.quantity,
+                      },
+                      { transaction }
+                    )
+                    .then(detail => {
+                      const { id_Product, quantity } = detail;
+                      return Product.model
+                        .findByPk(id_Product, { transaction })
+                        .then(product => {
+                          if (product.stock > quantity) {
+                            const stock = product.stock - quantity;
+                            const productData = { id: id_Product, stock };
+                            return Product.model
+                              .update(
+                                { ...productData, updateAt: Date.now() },
+                                {
+                                  returning: true,
+                                  where: { id: id_Product },
+                                  transaction,
+                                }
+                              )
+                              .then(productUpdated => productUpdated);
+                          } else {
+                            throw new Error('Stock is not enough.');
+                          }
+                        });
+                    })
+                    .then(
+                      result => result,
+                      error => {
+                        throw new Error(error);
+                      }
+                    );
                 });
               })
-              .then(newSale => {
-                t.commit();
-
-                return newSale;
-              });
+              .then(
+                newSale => {
+                  transaction.commit();
+                  return newSale;
+                },
+                error => console.log('error en new sale', error)
+              );
           })
           .then(
             res => res,
@@ -123,12 +157,16 @@ class Sale {
     }
   }
 
-  validateCreate({ type, amount, details }) {
+  validateCreate({ type, amount, id_User, details }) {
     if (!type || !isString(type)) {
       return false;
     }
 
     if (!amount || !isNum(amount)) {
+      return false;
+    }
+
+    if (!id_User || !isNum(id_User)) {
       return false;
     }
 
