@@ -21,6 +21,7 @@ const dbSaleDetail = sequelize.define('salesDetails', {
 
 class SaleDetail {
   constructor() {
+    this.model = dbSaleDetail;
     this.create = async ({ saleNumber, type, id_Product, quantity, price }) => {
       try {
         await sequelize.sync();

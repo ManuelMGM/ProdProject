@@ -20,6 +20,7 @@ const dbProduct = sequelize.define('products', {
 
 class Product {
   constructor() {
+    this.model = dbProduct;
     this.create = async ({
       codProduct,
       description,
@@ -66,7 +67,7 @@ class Product {
 
     this.getProduct = async id => {
       try {
-        return await dbProduct.findById(id);
+        return await dbProduct.findByPk(id);
       } catch (e) {
         console.error(e);
       }
@@ -109,7 +110,12 @@ class Product {
     const Op = Sequelize.Op;
     try {
       return await dbProduct.findAll({
-        where: { description: { [Op.iLike]: `%${term}%` } },
+        where: {
+          [Op.or]: [
+            { description: { [Op.iLike]: `%${term}%` } },
+            { codProduct: { [Op.iLike]: `%${term}%` } },
+          ],
+        },
         attributes: [
           'id',
           'codProduct',

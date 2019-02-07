@@ -1,24 +1,25 @@
 const router = require('express').Router();
 
 const { protected } = require('../middlewares');
-const Sale = require('../Models/Sale');
+const CashOut = require('../models/CashOut');
 
 const isBefore = require('date-fns/is_before');
 const { stringToDate } = require('../utils/dates');
 
 router.get('/', protected, async (req, res) => {
   try {
-    let sales;
+    let cashMoves;
     if (!req.query.from && !req.query.to) {
-      sales = await Sale.getAll();
-      res.send(sales);
+      cashMoves = await CashOut.getAll();
+      res.send(cashMoves);
     } else if (req.query.from && req.query.to) {
       const from = stringToDate(req.query.from);
       const to = stringToDate(req.query.to);
+      console.log('dates', from, to);
       if (isBefore(from, to)) {
-        sales = await Sale.getSalesByRangeDates(from, to);
-        const amount = await Sale.getSalesSum(from, to);
-        res.send({ amount, sales });
+        cashMoves = await CashOut.getCashOutByRangeDates(from, to);
+        const amount = await CashOut.getCheckOutSum(from, to);
+        res.send({ amount, cashMoves });
       } else {
         res.status(400).send('Verify dates.');
       }
@@ -33,19 +34,21 @@ router.get('/', protected, async (req, res) => {
 
 router.post('/', protected, async (req, res) => {
   try {
-    const { type, amount, id_User, details } = req.body;
-    const newSale = await Sale.create({ type, amount, id_User, details });
-    newSale ? res.send('SALE COMMITED') : res.status(400).send('Validate data format.');
+    const { description, id_User, amount } = req.body;
+    const cashMoved = await CashOut.create({ description, id_User, amount });
+    cashMoved
+      ? res.send(cashMoved)
+      : res.status(400).send('Validate data format.');
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
   }
 });
 
-router.get('/search/:number', protected, async (req, res) => {
+router.delete('/:id', protected, async (req, res) => {
   try {
-    const sale = await Sale.getSale(req.params.number);
-    res.send(sale);
+    const cashDeleted = await CashOut.delete(req.params.id);
+    res.send(cashDeleted);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
