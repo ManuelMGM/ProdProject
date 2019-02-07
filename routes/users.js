@@ -43,4 +43,23 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/auth', async ({ token }, res) => {
+  try {
+    jwt.verify(token, process.env.PRIVATE_KEY, (err, authorizedData) => {
+      if (err) {
+        console.log('ERROR: Could not authenticate user', err.message);
+        res.status(403).send(err.message);
+      } else {
+        const {
+          user: { id, username, id_UserType },
+        } = authorizedData;
+        res.send({ id, username, id_UserType, token });
+      }
+    });
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
 module.exports = router;
