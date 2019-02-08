@@ -2,7 +2,7 @@ const router = require('express').Router();
 const jwt = require('jsonwebtoken');
 
 const { protected } = require('../middlewares');
-const User = require('../Models/User');
+const User = require('../models/User');
 
 router.get('/', protected, async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 const { protected } = require('../middlewares');
-const Provider = require('../Models/Provider');
+const Provider = require('../models/Provider');
 
 router.get('/', protected, async (req, res) => {
   try {
