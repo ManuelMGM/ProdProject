@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
       );
       res.status(403).send(err.message);
     } else {
-      console.log('SUCCESS: Connect to the protected route');
+      // Move to next middleware function
       next();
     }
   });

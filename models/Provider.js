@@ -1,5 +1,5 @@
 const { Sequelize, sequelize } = require('./db');
-
+const Product = require('./Product');
 const dbProvider = sequelize.define('providers', {
   cuit: { type: Sequelize.BIGINT, allowNull: false, unique: true },
   name: { type: Sequelize.STRING, allowNull: false },
@@ -65,12 +65,7 @@ class Provider {
 
   async getProductsByProvider(id) {
     try {
-      return await sequelize.query(
-        'SELECT p.id, "p"."codProduct", p.description, pt.description, p.stock, p."salePrice", p."costPrice"' +
-          ' FROM public.products p INNER JOIN "public"."productsTypes" pt ON p."id_ProductType" = pt.id' +
-          ' WHERE "id_Provider" = ?',
-        { replacements: [id], type: sequelize.QueryTypes.SELECT }
-      );
+      return await Product.findByProvider(id);
     } catch (e) {
       console.error(e);
     }
@@ -78,10 +73,12 @@ class Provider {
 
   async updateProvider(provider) {
     try {
-      return await dbProvider.update(
+      const result = await dbProvider.update(
         { ...provider, updateAt: Date.now() },
         { returning: true, where: { id: provider.id } }
       );
+
+      return result[1][0].dataValues;
     } catch (e) {
       console.error(e);
     }
