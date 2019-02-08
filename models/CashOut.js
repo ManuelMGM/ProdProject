@@ -1,4 +1,5 @@
 const { Sequelize, sequelize } = require('./db');
+const { isString, isNum } = require('../utils/validate');
 
 const dbCashOut = sequelize.define('cashOut', {
   description: { type: Sequelize.TEXT, allowNull: false },
@@ -29,7 +30,7 @@ class CashOut {
     this.getAll = async () => {
       try {
         return await dbCashOut.findAll({
-          attributes: ['description', 'id_User', 'amount'],
+          attributes: ['id', 'description', 'id_User', 'amount', 'updatedAt'],
         });
       } catch (e) {
         console.log(e);
