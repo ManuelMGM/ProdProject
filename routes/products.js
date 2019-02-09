@@ -9,7 +9,12 @@ router.get('/search', protected, async (req, res) => {
       const product = await Product.getProductByDescription(req.query.term);
       res.send(product);
     } else {
-      res.send({});
+      if (req.query.order) {
+        const products = await Product.getProductOrderBy(req.query.order);
+        products ? res.send(products) : res.status(400).send('Send valid param to order by.');
+      } else {
+        res.send({});
+      }
     }
   } catch (e) {
     console.error(e);

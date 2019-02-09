@@ -1,5 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
 const Product = require('./Product');
+
 const dbProvider = sequelize.define('providers', {
   cuit: { type: Sequelize.BIGINT, allowNull: false, unique: true },
   name: { type: Sequelize.STRING, allowNull: false },
