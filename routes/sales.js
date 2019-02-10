@@ -22,9 +22,7 @@ router.get('/', protected, async (req, res) => {
     if (!req.query.from && !req.query.to) {
       if (req.query.idProduct) {
         sales = await Sale.getSaleWithProduct(req.query.idProduct);
-        sales
-          ? res.send(sales)
-          : res.status(400).send('Product id must be a valid number.');
+        sales ? res.send(sales) : res.send({});
       } else {
         sales = await Sale.getAll();
         res.send(sales);
@@ -39,9 +37,7 @@ router.get('/', protected, async (req, res) => {
             from,
             to
           );
-          sales
-            ? res.send(sales)
-            : res.status(400).send('Product id must be a valid number.');
+          sales ? res.send(sales) : res.send({});
         } else {
           sales = await Sale.getSalesByRangeDates(from, to);
           const amount = await Sale.getSalesSum(from, to);
