@@ -11,7 +11,7 @@ router.get('/search', protected, async (req, res) => {
     } else {
       if (req.query.order) {
         const products = await Product.getProductOrderBy(req.query.order);
-        products ? res.send(products) : res.status(400).send('Send valid param to order by.');
+        res.send(products);
       } else {
         res.send({});
       }
@@ -24,8 +24,13 @@ router.get('/search', protected, async (req, res) => {
 
 router.get('/', protected, async (req, res) => {
   try {
-    const products = await Product.getAll();
-    res.send(products);
+    if (req.query.order) {
+      const products = await Product.getProductOrderBy(req.query.order);
+      res.send(products);
+    } else {
+      const products = await Product.getAll();
+      res.send(products);
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

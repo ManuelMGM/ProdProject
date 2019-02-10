@@ -135,20 +135,23 @@ class Product {
   async getProductOrderBy(order) {
     try {
       const queryTerm = this.getOrderParam(order);
-      if (queryTerm) {
-        const query =
-          'SELECT p.id, p."codProduct", p.description, pt.description, CONCAT(pr.name, \' \', pr.apellido) As Provider' +
-          ', p.stock, p."minimumStock", p."salePrice", p."costPrice"' +
-          ' FROM public.products p INNER JOIN public.providers pr ON p."id_Provider" = pr.id' +
-          '   INNER JOIN public."productsTypes" pt ON p."id_ProductType" = pt.id' +
-          ' ORDER BY ?';
+      const query =
+        'SELECT p.id, p."codProduct", p.description As Product, pt.description As Type,' +
+        ' CONCAT(pr.name, \' \', pr.apellido) As Provider, p.stock, p."minimumStock", p."salePrice", p."costPrice"' +
+        ' FROM public.products p INNER JOIN public.providers pr ON p."id_Provider" = pr.id' +
+        '   INNER JOIN public."productsTypes" pt ON p."id_ProductType" = pt.id' +
+        ' ORDER BY ?';
 
+      if (queryTerm) {
         return await sequelize.query(query, {
           replacements: [queryTerm],
           type: sequelize.QueryTypes.SELECT,
         });
       } else {
-        return false;
+        return await sequelize.query(query, {
+          replacements: [3],
+          type: sequelize.QueryTypes.SELECT,
+        });
       }
     } catch (e) {
       console.error(e);
