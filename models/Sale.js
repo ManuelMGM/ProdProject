@@ -130,33 +130,6 @@ class Sale {
     };
   }
 
-  async getSalesByRangeDates(from, to) {
-    const Op = Sequelize.Op;
-    try {
-      return await dbSale.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [from, to],
-          },
-        },
-        attributes: ['number', 'type', 'amount'],
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async getSalesSum(from, to) {
-    try {
-      return await sequelize.query(
-        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to',
-        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
-      );
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
   validateCreate({ type, amount, id_User, details }) {
     if (!type || !isString(type)) {
       return false;
@@ -187,16 +160,88 @@ class Sale {
         if (!element.price || !isNum(element.price) || !(element.price > 0)) {
           res = false;
         }
-        if (!element.quantity || !isNum(element.quantity) || !(element.quantity > 0)) {
+        if (
+          !element.quantity ||
+          !isNum(element.quantity) ||
+          !(element.quantity > 0)
+        ) {
           res = false;
         }
-        
       });
 
       return res;
     }
 
     return false;
+  }
+
+  async getSalesByRangeDates(from, to) {
+    const Op = Sequelize.Op;
+    try {
+      return await dbSale.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [from, to],
+          },
+        },
+        attributes: ['number', 'type', 'amount'],
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async getSalesSum(from, to) {
+    try {
+      return await sequelize.query(
+        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to',
+        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async getSaleWithProduct(idProduct) {
+    try {
+      if (isNum(idProduct)) {
+        const query =
+          'SELECT s."number", s.type, s.amount, p."codProduct", p.description, s."id_User"' +
+          ' FROM public.sales s INNER JOIN public."salesDetails" sd ON (s."number" = sd."saleNumber" AND s.type = sd.type)' +
+          ' INNER JOIN public.products p ON (sd."id_Product" = p.id)' +
+          ' WHERE p.id = ?';
+
+        return await sequelize.query(query, {
+          replacements: [idProduct],
+          type: sequelize.QueryTypes.SELECT,
+        });
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async getSaleWithProductByDates(idProduct, from, to) {
+    try {
+      if (isNum(idProduct)) {
+        const query =
+          'SELECT s."number", s.type, s.amount, p."codProduct", p.description, s."id_User"' +
+          ' FROM public.sales s INNER JOIN public."salesDetails" sd ON (s."number" = sd."saleNumber" AND s.type = sd.type)' +
+          ' INNER JOIN public.products p ON (sd."id_Product" = p.id)' +
+          ' WHERE p.id = :idProduct AND s."createdAt" BETWEEN :from AND :to';
+
+        return await sequelize.query(query, {
+          replacements: { idProduct, from, to },
+          type: sequelize.QueryTypes.SELECT,
+        });
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
