@@ -17,7 +17,7 @@ router.get('/', protected, async (req, res) => {
       const to = stringToDate(req.query.to);
       console.log('dates', from, to);
       if (isBefore(from, to)) {
-        cashMoves = await CashOut.getCashOutByRangeDates(from, to);
+        cashMoves = await CashOut.getEntitiesByRangeDates(from, to);
         const amount = await CashOut.getCheckOutSum(from, to);
         res.send({ amount, cashMoves });
       } else {

@@ -1,5 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
 const { isString, isNum } = require('../utils/validate');
+const Entity = require('./Entity');
 
 const dbCashOut = sequelize.define('cashOut', {
   description: { type: Sequelize.TEXT, allowNull: false },
@@ -11,8 +12,9 @@ const dbCashOut = sequelize.define('cashOut', {
   amount: { type: Sequelize.FLOAT, validate: { min: 0 } },
 });
 
-class CashOut {
+class CashOut extends Entity {
   constructor() {
+    super(dbCashOut);
     this.create = async ({ description, id_User, amount }) => {
       try {
         if (this.validateCreate({ description, id_User, amount })) {
@@ -26,44 +28,6 @@ class CashOut {
         console.error(e);
       }
     };
-
-    this.getAll = async () => {
-      try {
-        return await dbCashOut.findAll({
-          attributes: ['id', 'description', 'id_User', 'amount', 'updatedAt'],
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    };
-  }
-
-  async delete(id) {
-    try {
-      const cashout = await dbCashOut.findByPk(id);
-      const show = cashout;
-      cashout.destroy();
-
-      return show;
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async getCashOutByRangeDates(from, to) {
-    const Op = Sequelize.Op;
-    try {
-      return await dbCashOut.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [from, to],
-          },
-        },
-        attributes: ['description', 'id_User', 'amount'],
-      });
-    } catch (e) {
-      console.log(e);
-    }
   }
 
   async getCheckOutSum(from, to) {
