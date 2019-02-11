@@ -9,7 +9,12 @@ router.get('/search', protected, async (req, res) => {
       const product = await Product.getProductByDescription(req.query.term);
       res.send(product);
     } else {
-      res.send({});
+      if (req.query.order) {
+        const products = await Product.getProductOrderBy(req.query.order);
+        res.send(products);
+      } else {
+        res.send({});
+      }
     }
   } catch (e) {
     console.error(e);
@@ -19,8 +24,13 @@ router.get('/search', protected, async (req, res) => {
 
 router.get('/', protected, async (req, res) => {
   try {
-    const products = await Product.getAll();
-    res.send(products);
+    if (req.query.order) {
+      const products = await Product.getProductOrderBy(req.query.order);
+      res.send(products);
+    } else {
+      const products = await Product.getAll();
+      res.send(products);
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

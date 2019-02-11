@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 const { protected } = require('../middlewares');
-const Sale = require('../Models/Sale');
+const Sale = require('../models/Sale');
 
 const isBefore = require('date-fns/is_before');
 const { stringToDate } = require('../utils/dates');
@@ -62,6 +62,16 @@ router.post('/', protected, async (req, res) => {
     newSale
       ? res.send('SALE COMMITED')
       : res.status(400).send('Validate data format.');
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
+router.get('/search/:number', protected, async (req, res) => {
+  try {
+    const sale = await Sale.getSale(req.params.number);
+    res.send(sale);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

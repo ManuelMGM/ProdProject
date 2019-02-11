@@ -1,3 +1,6 @@
 node_modules
 .env
 .prettierrc
+
+yarn.lock
+yarn-error.log
