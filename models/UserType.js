@@ -1,29 +1,13 @@
 const { Sequelize, sequelize } = require('./db');
+const Entity = require('./Entity');
 
 const dbUserType = sequelize.define('usersTypes', {
   description: { type: Sequelize.STRING, allowNull: false, unique: true },
 });
 
-class UserType {
+class UserType extends Entity {
   constructor() {
-    this.create = async ({ description }) => {
-      try {
-        await sequelize.sync();
-        const result = await dbUserType.create({
-          description,
-        });
-
-        return result;
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    this.getAll = () => {
-      return dbUserType.findAll({
-        attributes: ['id', 'description'],
-      });
-    };
+    super(dbUserType);
 
     this.getUserType = description => {
       return dbUserType.findAll({

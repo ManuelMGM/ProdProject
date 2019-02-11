@@ -1,4 +1,5 @@
 const { Sequelize, sequelize } = require('./db');
+const Entity = require('./Entity');
 
 const dbSaleDetail = sequelize.define('salesDetails', {
   saleNumber: {
@@ -19,9 +20,9 @@ const dbSaleDetail = sequelize.define('salesDetails', {
   price: { type: Sequelize.FLOAT },
 });
 
-class SaleDetail {
+class SaleDetail extends Entity {
   constructor() {
-    this.model = dbSaleDetail;
+    super(dbSaleDetail);
     this.create = async ({ saleNumber, type, id_Product, quantity, price }) => {
       try {
         await sequelize.sync();
@@ -40,7 +41,7 @@ class SaleDetail {
     };
 
     this.getAll = saleNumber => {
-      return dbSaleDetail.findAll({
+      return this.dbModel.findAll({
         where: { saleNumber },
         attributes: ['item', 'saleNumber', 'type', 'id_Product', 'quantity'],
       });

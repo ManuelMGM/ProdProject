@@ -1,5 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
 const SaleDetail = require('./SaleDetail');
+const Entity = require('./Entity');
 const Product = require('./Product');
 
 const { isString, isNum } = require('../utils/validate');
@@ -20,8 +21,9 @@ const dbSale = sequelize.define('sales', {
   },
 });
 
-class Sale {
+class Sale extends Entity {
   constructor() {
+    super(dbSale);
     this.create = async ({ type, amount, id_User, details }) => {
       if (this.validateCreate({ type, amount, id_User, details })) {
         await sequelize.sync();
@@ -107,27 +109,6 @@ class Sale {
         return false;
       }
     };
-
-    this.getAll = async () => {
-      try {
-        return await dbSale.findAll({
-          attributes: ['number', 'type', 'amount'],
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    this.getSale = async number => {
-      try {
-        return await dbSale.findAll({
-          where: { number },
-          attributes: ['number', 'type', 'amount'],
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    };
   }
 
   validateCreate({ type, amount, id_User, details }) {
@@ -173,22 +154,6 @@ class Sale {
     }
 
     return false;
-  }
-
-  async getSalesByRangeDates(from, to) {
-    const Op = Sequelize.Op;
-    try {
-      return await dbSale.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [from, to],
-          },
-        },
-        attributes: ['number', 'type', 'amount'],
-      });
-    } catch (e) {
-      console.log(e);
-    }
   }
 
   async getSalesSum(from, to) {

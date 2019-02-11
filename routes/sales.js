@@ -39,7 +39,7 @@ router.get('/', protected, async (req, res) => {
           );
           sales ? res.send(sales) : res.send({});
         } else {
-          sales = await Sale.getSalesByRangeDates(from, to);
+          sales = await Sale.getEntitiesByRangeDates(from, to);
           const amount = await Sale.getSalesSum(from, to);
           res.send({ amount, sales });
         }
@@ -70,7 +70,7 @@ router.post('/', protected, async (req, res) => {
 
 router.get('/search/:number', protected, async (req, res) => {
   try {
-    const sale = await Sale.getSale(req.params.number);
+    const sale = await Sale.getEntity(req.params.number);
     res.send(sale);
   } catch (e) {
     console.error(e);
