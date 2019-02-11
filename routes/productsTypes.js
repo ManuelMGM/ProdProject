@@ -25,9 +25,7 @@ router.post('/', protected, async (req, res) => {
 
 router.get('/search/:description', protected, async (req, res) => {
   try {
-    const productType = await ProductType.getProductType(
-      req.params.description
-    );
+    const productType = await ProductType.getAllByKey(req.params.description);
     res.send(productType);
   } catch (e) {
     console.error(e);

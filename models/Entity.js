@@ -1,3 +1,4 @@
+const { Sequelize, sequelize } = require('./db');
 class Entity {
   constructor(dbModel) {
     this.dbModel = dbModel;
@@ -6,7 +7,7 @@ class Entity {
   async create(entityProps) {
     try {
       await sequelize.sync();
-      const result = await dbUserType.create({
+      const result = await this.dbModel.create({
         ...entityProps,
       });
 
@@ -26,6 +27,12 @@ class Entity {
 
   getAll() {
     return this.dbModel.findAll();
+  }
+
+  getAllByKey(key) {
+    return this.dbModel.findAll({
+      where: { [key]: key },
+    });
   }
 
   async updateEntity(entity) {

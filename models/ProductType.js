@@ -8,13 +8,6 @@ const dbProductType = sequelize.define('productsTypes', {
 class ProductType extends Entity {
   constructor() {
     super(dbProductType);
-
-    this.getProductType = description => {
-      return dbProductType.findAll({
-        where: { description },
-        attributes: ['id', 'description'],
-      });
-    };
   }
 }
 

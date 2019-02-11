@@ -23,6 +23,7 @@ const dbSaleDetail = sequelize.define('salesDetails', {
 class SaleDetail extends Entity {
   constructor() {
     super(dbSaleDetail);
+
     this.create = async ({ saleNumber, type, id_Product, quantity, price }) => {
       try {
         await sequelize.sync();
@@ -38,13 +39,6 @@ class SaleDetail extends Entity {
       } catch (e) {
         console.error(e);
       }
-    };
-
-    this.getAll = saleNumber => {
-      return this.dbModel.findAll({
-        where: { saleNumber },
-        attributes: ['item', 'saleNumber', 'type', 'id_Product', 'quantity'],
-      });
     };
   }
 }

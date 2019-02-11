@@ -25,7 +25,7 @@ router.post('/', protected, async (req, res) => {
 
 router.get('/search/:description', protected, async (req, res) => {
   try {
-    const userType = await UserType.getUserType(req.params.description);
+    const userType = await UserType.getAllByKey(req.params.description);
     res.send(userType);
   } catch (e) {
     console.error(e);

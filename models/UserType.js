@@ -8,13 +8,6 @@ const dbUserType = sequelize.define('usersTypes', {
 class UserType extends Entity {
   constructor() {
     super(dbUserType);
-
-    this.getUserType = description => {
-      return dbUserType.findAll({
-        where: { description },
-        attributes: ['id', 'description'],
-      });
-    };
   }
 }
 
