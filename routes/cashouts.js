@@ -36,9 +36,7 @@ router.post('/', protected, async (req, res) => {
   try {
     const { description, id_User, amount } = req.body;
     const cashMoved = await CashOut.create({ description, id_User, amount });
-    cashMoved
-      ? res.send(cashMoved)
-      : res.status(400).send('Validate data format.');
+    res.send(cashMoved);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);

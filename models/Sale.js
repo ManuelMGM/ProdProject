@@ -13,15 +13,19 @@ const dbSale = sequelize.define('sales', {
     primaryKey: true,
     validate: { isNumeric: true },
   },
-  type: { type: Sequelize.STRING, allowNull: false, primaryKey: true },
+  type: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    primaryKey: true,
+  },
   amount: { type: Sequelize.FLOAT },
   id_User: {
     type: Sequelize.INTEGER,
-    references: { model: 'usersTypes', key: 'id' },
+    references: { model: 'users', key: 'id' },
   },
   id_PaymentMethod: {
     type: Sequelize.INTEGER,
-    references: { model: 'paymentMethod', key: 'id' },
+    references: { model: 'paymentMethods', key: 'id' },
   },
 });
 
@@ -63,6 +67,7 @@ class Sale extends Entity {
                   type,
                   amount,
                   id_User,
+                  id_PaymentMethod,
                 },
                 { transaction }
               )
@@ -81,12 +86,14 @@ class Sale extends Entity {
                     )
                     .then(detail => {
                       const { id_Product, quantity } = detail;
+
                       return Product.dbModel
                         .findByPk(id_Product, { transaction })
                         .then(product => {
                           if (product.stock >= quantity) {
                             const stock = product.stock - quantity;
                             const productData = { id: id_Product, stock };
+
                             return Product.dbModel
                               .update(
                                 { ...productData, updateAt: Date.now() },
@@ -113,6 +120,7 @@ class Sale extends Entity {
               .then(
                 newSale => {
                   transaction.commit();
+
                   return newSale;
                 },
                 error => console.log('error en new sale', error)
@@ -179,6 +187,20 @@ class Sale extends Entity {
     return false;
   }
 
+  async getCashSalesSum(from, to) {
+    try {
+      const [response] = await sequelize.query(
+        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to AND "id_PaymentMethod"=1',
+        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
+      );
+
+      return response.sum || 0;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
   async getSalesSum(from, to) {
     try {
       return await sequelize.query(
@@ -187,6 +209,7 @@ class Sale extends Entity {
       );
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 

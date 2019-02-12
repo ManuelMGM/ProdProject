@@ -2,12 +2,12 @@ const { Sequelize, sequelize } = require('./db');
 const { isString, isNum } = require('../utils/validate');
 const Entity = require('./Entity');
 
-const dbCashOut = sequelize.define('cashOut', {
+const dbCashOut = sequelize.define('cashOuts', {
   description: { type: Sequelize.TEXT, allowNull: false },
   id_User: {
     type: Sequelize.INTEGER,
     allowNull: false,
-    references: { model: 'usersTypes', key: 'id' },
+    references: { model: 'users', key: 'id' },
   },
   amount: { type: Sequelize.FLOAT, validate: { min: 0 } },
 });
@@ -22,7 +22,7 @@ class CashOut extends Entity {
 
           return await dbCashOut.create({ description, id_User, amount });
         } else {
-          return false;
+          throw new Error('Validate Data Type.');
         }
       } catch (e) {
         console.error(e);
@@ -32,12 +32,15 @@ class CashOut extends Entity {
 
   async getCheckOutSum(from, to) {
     try {
-      return await sequelize.query(
+      const [response] = await sequelize.query(
         'SELECT SUM("amount") FROM "cashOuts" WHERE "createdAt" BETWEEN :from AND :to',
         { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
       );
+
+      return response.sum || 0;
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 

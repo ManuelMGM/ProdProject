@@ -1,7 +1,7 @@
 const { Sequelize, sequelize } = require('./db');
 const Entity = require('./Entity');
 
-const dbPaymentMethod = sequelize.define('paymentMethod', {
+const dbPaymentMethod = sequelize.define('paymentMethods', {
   description: { type: Sequelize.STRING, allowNull: false, unique: true },
 });
 
