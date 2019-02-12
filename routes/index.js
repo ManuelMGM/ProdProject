@@ -7,6 +7,7 @@ const productsTypes = require('./productsTypes');
 const providers = require('./providers');
 const sales = require('./sales');
 const cashouts = require('./cashouts');
+const cashShifts = require('./cashShifts');
 
 const bodyParser = require('body-parser');
 
@@ -28,5 +29,6 @@ router.use('/productsTypes', productsTypes);
 router.use('/providers', providers);
 router.use('/sales', sales);
 router.use('/cashouts', cashouts);
+router.use('/cashShifts', cashShifts);
 
 module.exports = router;
