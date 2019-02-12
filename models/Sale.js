@@ -19,13 +19,32 @@ const dbSale = sequelize.define('sales', {
     type: Sequelize.INTEGER,
     references: { model: 'usersTypes', key: 'id' },
   },
+  id_PaymentMethod: {
+    type: Sequelize.INTEGER,
+    references: { model: 'paymentMethod', key: 'id' },
+  },
 });
 
 class Sale extends Entity {
   constructor() {
     super(dbSale);
-    this.create = async ({ type, amount, id_User, details }) => {
-      if (this.validateCreate({ type, amount, id_User, details })) {
+
+    this.create = async ({
+      type,
+      amount,
+      id_User,
+      details,
+      id_PaymentMethod,
+    }) => {
+      if (
+        this.validateCreate({
+          type,
+          amount,
+          id_User,
+          details,
+          id_PaymentMethod,
+        })
+      ) {
         await sequelize.sync();
         let number = await sequelize.query(
           'SELECT MAX("number") FROM sales WHERE type = ?',
@@ -37,7 +56,7 @@ class Sale extends Entity {
         return sequelize
           .transaction()
           .then(transaction => {
-            return dbSale
+            return this.dbModel
               .create(
                 {
                   number,
@@ -49,7 +68,7 @@ class Sale extends Entity {
               )
               .then(sale => {
                 return sequelize.Promise.map(details, item => {
-                  return SaleDetail.model
+                  return SaleDetail.dbModel
                     .create(
                       {
                         saleNumber: sale.number,
@@ -62,13 +81,13 @@ class Sale extends Entity {
                     )
                     .then(detail => {
                       const { id_Product, quantity } = detail;
-                      return Product.model
+                      return Product.dbModel
                         .findByPk(id_Product, { transaction })
                         .then(product => {
                           if (product.stock >= quantity) {
                             const stock = product.stock - quantity;
                             const productData = { id: id_Product, stock };
-                            return Product.model
+                            return Product.dbModel
                               .update(
                                 { ...productData, updateAt: Date.now() },
                                 {
@@ -111,7 +130,7 @@ class Sale extends Entity {
     };
   }
 
-  validateCreate({ type, amount, id_User, details }) {
+  validateCreate({ type, amount, id_User, details, id_PaymentMethod }) {
     if (!type || !isString(type)) {
       return false;
     }
@@ -125,6 +144,10 @@ class Sale extends Entity {
     }
 
     if (!this.validateDetails(details)) {
+      return false;
+    }
+
+    if (!id_PaymentMethod || !isNum(id_PaymentMethod)) {
       return false;
     }
 

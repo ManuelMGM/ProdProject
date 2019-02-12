@@ -1,14 +1,14 @@
 const { Sequelize, sequelize } = require('./db');
 const Entity = require('./Entity');
 
-const dbUserType = sequelize.define('usersTypes', {
+const dbPaymentMethod = sequelize.define('paymentMethod', {
   description: { type: Sequelize.STRING, allowNull: false, unique: true },
 });
 
-class UserType extends Entity {
+class PaymentMethod extends Entity {
   constructor() {
-    super(dbUserType);
+    super(dbPaymentMethod);
   }
 }
 
-module.exports = new UserType();
+module.exports = new PaymentMethod();
