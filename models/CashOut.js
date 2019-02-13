@@ -1,18 +1,22 @@
 const { Sequelize, sequelize } = require('./db');
 const { isString, isNum } = require('../utils/validate');
+const Entity = require('./Entity');
+const User = require('./User');
 
-const dbCashOut = sequelize.define('cashOut', {
+const dbCashOut = sequelize.define('cashOuts', {
   description: { type: Sequelize.TEXT, allowNull: false },
-  id_User: {
+  userId: {
     type: Sequelize.INTEGER,
     allowNull: false,
-    references: { model: 'usersTypes', key: 'id' },
+    field: 'id_User',
+    references: { model: 'users', key: 'id' },
   },
   amount: { type: Sequelize.FLOAT, validate: { min: 0 } },
 });
 
-class CashOut {
+class CashOut extends Entity {
   constructor() {
+    super(dbCashOut);
     this.create = async ({ description, id_User, amount }) => {
       try {
         if (this.validateCreate({ description, id_User, amount })) {
@@ -20,60 +24,35 @@ class CashOut {
 
           return await dbCashOut.create({ description, id_User, amount });
         } else {
-          return false;
+          throw new Error('Validate Data Type.');
         }
       } catch (e) {
         console.error(e);
       }
     };
-
-    this.getAll = async () => {
-      try {
-        return await dbCashOut.findAll({
-          attributes: ['id', 'description', 'id_User', 'amount', 'updatedAt'],
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    };
   }
-
-  async delete(id) {
+  async getAll() {
     try {
-      const cashout = await dbCashOut.findByPk(id);
-      const show = cashout;
-      cashout.destroy();
+      User.dbModel.hasMany(dbCashOut);
+      this.dbModel.belongsTo(User.dbModel);
 
-      return show;
+      return await this.dbModel.findAll({ include: [User.dbModel] });
     } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async getCashOutByRangeDates(from, to) {
-    const Op = Sequelize.Op;
-    try {
-      return await dbCashOut.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [from, to],
-          },
-        },
-        attributes: ['description', 'id_User', 'amount'],
-      });
-    } catch (e) {
-      console.log(e);
+      throw e;
     }
   }
 
   async getCheckOutSum(from, to) {
     try {
-      return await sequelize.query(
+      const [response] = await sequelize.query(
         'SELECT SUM("amount") FROM "cashOuts" WHERE "createdAt" BETWEEN :from AND :to',
         { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
       );
+
+      return response.sum || 0;
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 

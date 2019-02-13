@@ -1,5 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
 const SaleDetail = require('./SaleDetail');
+const Entity = require('./Entity');
 const Product = require('./Product');
 
 const { isString, isNum } = require('../utils/validate');
@@ -12,18 +13,42 @@ const dbSale = sequelize.define('sales', {
     primaryKey: true,
     validate: { isNumeric: true },
   },
-  type: { type: Sequelize.STRING, allowNull: false, primaryKey: true },
+  type: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    primaryKey: true,
+  },
   amount: { type: Sequelize.FLOAT },
   id_User: {
     type: Sequelize.INTEGER,
-    references: { model: 'usersTypes', key: 'id' },
+    references: { model: 'users', key: 'id' },
+  },
+  id_PaymentMethod: {
+    type: Sequelize.INTEGER,
+    references: { model: 'paymentMethods', key: 'id' },
   },
 });
 
-class Sale {
+class Sale extends Entity {
   constructor() {
-    this.create = async ({ type, amount, id_User, details }) => {
-      if (this.validateCreate({ type, amount, id_User, details })) {
+    super(dbSale);
+
+    this.create = async ({
+      type,
+      amount,
+      id_User,
+      details,
+      id_PaymentMethod,
+    }) => {
+      if (
+        this.validateCreate({
+          type,
+          amount,
+          id_User,
+          details,
+          id_PaymentMethod,
+        })
+      ) {
         await sequelize.sync();
         let number = await sequelize.query(
           'SELECT MAX("number") FROM sales WHERE type = ?',
@@ -35,19 +60,20 @@ class Sale {
         return sequelize
           .transaction()
           .then(transaction => {
-            return dbSale
+            return this.dbModel
               .create(
                 {
                   number,
                   type,
                   amount,
                   id_User,
+                  id_PaymentMethod,
                 },
                 { transaction }
               )
               .then(sale => {
                 return sequelize.Promise.map(details, item => {
-                  return SaleDetail.model
+                  return SaleDetail.dbModel
                     .create(
                       {
                         saleNumber: sale.number,
@@ -60,13 +86,15 @@ class Sale {
                     )
                     .then(detail => {
                       const { id_Product, quantity } = detail;
-                      return Product.model
+
+                      return Product.dbModel
                         .findByPk(id_Product, { transaction })
                         .then(product => {
                           if (product.stock >= quantity) {
                             const stock = product.stock - quantity;
                             const productData = { id: id_Product, stock };
-                            return Product.model
+
+                            return Product.dbModel
                               .update(
                                 { ...productData, updateAt: Date.now() },
                                 {
@@ -92,6 +120,7 @@ class Sale {
               .then(
                 newSale => {
                   transaction.commit();
+
                   return newSale;
                 },
                 error => console.log('error en new sale', error)
@@ -107,30 +136,9 @@ class Sale {
         return false;
       }
     };
-
-    this.getAll = async () => {
-      try {
-        return await dbSale.findAll({
-          attributes: ['number', 'type', 'amount'],
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    this.getSale = async number => {
-      try {
-        return await dbSale.findAll({
-          where: { number },
-          attributes: ['number', 'type', 'amount'],
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    };
   }
 
-  validateCreate({ type, amount, id_User, details }) {
+  validateCreate({ type, amount, id_User, details, id_PaymentMethod }) {
     if (!type || !isString(type)) {
       return false;
     }
@@ -144,6 +152,10 @@ class Sale {
     }
 
     if (!this.validateDetails(details)) {
+      return false;
+    }
+
+    if (!id_PaymentMethod || !isNum(id_PaymentMethod)) {
       return false;
     }
 
@@ -175,19 +187,17 @@ class Sale {
     return false;
   }
 
-  async getSalesByRangeDates(from, to) {
-    const Op = Sequelize.Op;
+  async getCashSalesSum(from, to) {
     try {
-      return await dbSale.findAll({
-        where: {
-          createdAt: {
-            [Op.between]: [from, to],
-          },
-        },
-        attributes: ['number', 'type', 'amount'],
-      });
+      const [response] = await sequelize.query(
+        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to AND "id_PaymentMethod"=1',
+        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
+      );
+
+      return response.sum || 0;
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      throw e;
     }
   }
 
@@ -199,6 +209,7 @@ class Sale {
       );
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 

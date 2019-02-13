@@ -40,7 +40,7 @@ router.get('/', protected, async (req, res) => {
 router.get('/:id', protected, async (req, res) => {
   try {
     if (req.params.id) {
-      const product = await Product.getProduct(req.params.id);
+      const product = await Product.getEntity(req.params.id);
       res.send(product);
     } else {
       res.send({});
@@ -76,7 +76,7 @@ router.put('/:productId', protected, async (req, res, next) => {
   try {
     if (req.params.productId) {
       if (Product.validateAttributes(req.body)) {
-        const product = await Product.updateProduct(req.body);
+        const product = await Product.updateEntity(req.body);
         res.send(product);
       } else {
         res.status(400).send('Validate properties values.');

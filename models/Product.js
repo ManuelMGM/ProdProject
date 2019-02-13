@@ -1,5 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
 const { isString, isNum } = require('../utils/validate');
+const Entity = require('./Entity');
 
 const dbProduct = sequelize.define('products', {
   codProduct: { type: Sequelize.STRING, allowNull: false, unique: true },
@@ -18,9 +19,10 @@ const dbProduct = sequelize.define('products', {
   costPrice: { type: Sequelize.FLOAT, validate: { min: 0 } },
 });
 
-class Product {
+class Product extends Entity {
   constructor() {
-    this.model = dbProduct;
+    super(dbProduct);
+
     this.create = async ({
       codProduct,
       description,
@@ -33,7 +35,7 @@ class Product {
     }) => {
       try {
         await sequelize.sync();
-        const result = await dbProduct.create({
+        const result = await this.dbModel.create({
           codProduct,
           description,
           id_ProductType,
@@ -49,29 +51,6 @@ class Product {
         console.error(e);
       }
     };
-
-    this.getAll = () => {
-      return dbProduct.findAll({
-        attributes: [
-          'id',
-          'codProduct',
-          'salePrice',
-          'costPrice',
-          'description',
-          'id_ProductType',
-          'stock',
-          'id_Provider',
-        ],
-      });
-    };
-
-    this.getProduct = async id => {
-      try {
-        return await dbProduct.findByPk(id);
-      } catch (e) {
-        console.error(e);
-      }
-    };
   }
 
   async updateMultiple(products) {
@@ -80,7 +59,7 @@ class Product {
         .transaction()
         .then(t => {
           return sequelize.Promise.map(products, prod => {
-            return dbProduct
+            return this.dbModel
               .update(
                 { ...prod, updateAt: Date.now() },
                 { returning: true, where: { id: prod.id }, transaction: t }
@@ -109,23 +88,13 @@ class Product {
   async getProductByDescription(term) {
     const Op = Sequelize.Op;
     try {
-      return await dbProduct.findAll({
+      return await this.dbModel.findAll({
         where: {
           [Op.or]: [
             { description: { [Op.iLike]: `%${term}%` } },
             { codProduct: { [Op.iLike]: `%${term}%` } },
           ],
         },
-        attributes: [
-          'id',
-          'codProduct',
-          'salePrice',
-          'costPrice',
-          'description',
-          'id_ProductType',
-          'stock',
-          'id_Provider',
-        ],
       });
     } catch (e) {
       console.error(e);
@@ -210,21 +179,8 @@ class Product {
     return true;
   }
 
-  async updateProduct(product) {
-    try {
-      const result = await dbProduct.update(
-        { ...product, updateAt: Date.now() },
-        { returning: true, where: { id: product.id } }
-      );
-
-      return result[1][0].dataValues;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
   async findByProvider(providerId) {
-    return dbProduct.findAll({ where: { id_Provider: providerId } });
+    return this.dbModel.findAll({ where: { id_Provider: providerId } });
   }
 }
 

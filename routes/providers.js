@@ -15,7 +15,7 @@ router.get('/', protected, async (req, res) => {
 
 router.get('/search/:id', protected, async (req, res) => {
   try {
-    const provider = await Provider.getProvider(req.params.id);
+    const provider = await Provider.getEntity(req.params.id);
     res.send(provider);
   } catch (e) {
     console.error(e);
@@ -58,7 +58,7 @@ router.post('/', protected, async (req, res) => {
 router.put('/:providerId', protected, async (req, res, next) => {
   try {
     if (req.params.providerId) {
-      const provider = await Provider.updateProvider(req.body);
+      const provider = await Provider.updateEntity(req.body);
       provider
         ? res.send(provider)
         : res.status(400).send('Validate properties values.');

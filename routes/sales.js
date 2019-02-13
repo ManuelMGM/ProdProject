@@ -39,7 +39,7 @@ router.get('/', protected, async (req, res) => {
           );
           sales ? res.send(sales) : res.send({});
         } else {
-          sales = await Sale.getSalesByRangeDates(from, to);
+          sales = await Sale.getEntitiesByRangeDates(from, to);
           const amount = await Sale.getSalesSum(from, to);
           res.send({ amount, sales });
         }
@@ -57,8 +57,14 @@ router.get('/', protected, async (req, res) => {
 
 router.post('/', protected, async (req, res) => {
   try {
-    const { type, amount, id_User, details } = req.body;
-    const newSale = await Sale.create({ type, amount, id_User, details });
+    const { type, amount, id_User, details, id_PaymentMethod } = req.body;
+    const newSale = await Sale.create({
+      type,
+      amount,
+      id_User,
+      details,
+      id_PaymentMethod,
+    });
     newSale
       ? res.send('SALE COMMITED')
       : res.status(400).send('Validate data format.');
@@ -70,7 +76,7 @@ router.post('/', protected, async (req, res) => {
 
 router.get('/search/:number', protected, async (req, res) => {
   try {
-    const sale = await Sale.getSale(req.params.number);
+    const sale = await Sale.getEntity(req.params.number);
     res.send(sale);
   } catch (e) {
     console.error(e);
