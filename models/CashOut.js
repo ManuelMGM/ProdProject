@@ -35,9 +35,8 @@ class CashOut extends Entity {
     try {
       User.dbModel.hasMany(dbCashOut);
       this.dbModel.belongsTo(User.dbModel);
-      return await this.dbModel.findAll({
-        include: [User.dbModel],
-      });
+
+      return await this.dbModel.findAll({ include: [User.dbModel] });
     } catch (e) {
       throw e;
     }
