@@ -95,16 +95,6 @@ class Product extends Entity {
             { codProduct: { [Op.iLike]: `%${term}%` } },
           ],
         },
-        attributes: [
-          'id',
-          'codProduct',
-          'salePrice',
-          'costPrice',
-          'description',
-          'id_ProductType',
-          'stock',
-          'id_Provider',
-        ],
       });
     } catch (e) {
       console.error(e);
