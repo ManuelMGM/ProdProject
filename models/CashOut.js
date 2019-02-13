@@ -1,12 +1,14 @@
 const { Sequelize, sequelize } = require('./db');
 const { isString, isNum } = require('../utils/validate');
 const Entity = require('./Entity');
+const User = require('./User');
 
 const dbCashOut = sequelize.define('cashOuts', {
   description: { type: Sequelize.TEXT, allowNull: false },
-  id_User: {
+  userId: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    field: 'id_User',
     references: { model: 'users', key: 'id' },
   },
   amount: { type: Sequelize.FLOAT, validate: { min: 0 } },
@@ -28,6 +30,16 @@ class CashOut extends Entity {
         console.error(e);
       }
     };
+  }
+  async getAll() {
+    try {
+      User.dbModel.hasMany(dbCashOut);
+      this.dbModel.belongsTo(User.dbModel);
+
+      return await this.dbModel.findAll({ include: [User.dbModel] });
+    } catch (e) {
+      throw e;
+    }
   }
 
   async getCheckOutSum(from, to) {

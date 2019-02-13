@@ -1,4 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
+const Entity = require('./Entity');
+
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
@@ -27,8 +29,9 @@ const hashPwd = async pwd => {
   }
 };
 
-class User {
+class User extends Entity {
   constructor() {
+    super(dbUser);
     this.create = async ({ username, email, pwd }) => {
       try {
         const hash = await hashPwd(pwd);
