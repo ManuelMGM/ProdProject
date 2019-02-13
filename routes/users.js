@@ -32,7 +32,12 @@ router.post('/login', async (req, res) => {
         if (err) {
           console.log(err);
         }
-        res.send({ id: user.id, token });
+        res.send({
+          id: user.id,
+          token,
+          id_UserType: user.id_UserType,
+          username: user.username,
+        });
       });
     } else {
       res.sendStatus(401);
