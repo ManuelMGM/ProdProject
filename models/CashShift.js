@@ -91,15 +91,7 @@ class CashShift extends Entity {
   }
 
   validateCreate({ existingAmount, id_User }) {
-    if (!existingAmount || !isNum(existingAmount)) {
-      return false;
-    }
-
-    if (!id_User || !isNum(id_User)) {
-      return false;
-    }
-
-    return true;
+    return isNum(existingAmount) && isNum(id_User);
   }
 }
 

@@ -143,11 +143,11 @@ class Sale extends Entity {
       return false;
     }
 
-    if (!amount || !isNum(amount) || !(amount > 0)) {
+    if (!isNum(amount) || !(amount > 0)) {
       return false;
     }
 
-    if (!id_User || !isNum(id_User)) {
+    if (!isNum(id_User)) {
       return false;
     }
 
@@ -155,7 +155,7 @@ class Sale extends Entity {
       return false;
     }
 
-    if (!id_PaymentMethod || !isNum(id_PaymentMethod)) {
+    if (!isNum(id_PaymentMethod)) {
       return false;
     }
 
@@ -166,17 +166,13 @@ class Sale extends Entity {
     if (details && details.length) {
       let res = true;
       details.some(element => {
-        if (!element.id_Product || !isNum(element.id_Product)) {
+        if (!isNum(element.id_Product)) {
           res = false;
         }
-        if (!element.price || !isNum(element.price) || !(element.price > 0)) {
+        if (!isNum(element.price) || !(element.price > 0)) {
           res = false;
         }
-        if (
-          !element.quantity ||
-          !isNum(element.quantity) ||
-          !(element.quantity > 0)
-        ) {
+        if (!isNum(element.quantity) || !(element.quantity > 0)) {
           res = false;
         }
       });
