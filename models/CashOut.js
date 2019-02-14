@@ -22,7 +22,11 @@ class CashOut extends Entity {
         if (this.validateCreate({ description, id_User, amount })) {
           await sequelize.sync();
 
-          return await dbCashOut.create({ description, id_User, amount });
+          return await dbCashOut.create({
+            description,
+            userId: id_User,
+            amount,
+          });
         } else {
           throw new Error('Validate Data Type.');
         }
