@@ -172,7 +172,7 @@ class Product extends Entity {
     if (product.hasOwnProperty('codProduct') && !isString(product.codProduct)) {
       return false;
     }
-    if (!product.id || !isNum(product.id)) {
+    if (!isNum(product.id)) {
       return false;
     }
 
