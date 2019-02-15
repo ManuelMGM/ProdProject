@@ -32,6 +32,7 @@ class CashOut extends Entity {
         }
       } catch (e) {
         console.error(e);
+        throw e;
       }
     };
   }
@@ -41,6 +42,25 @@ class CashOut extends Entity {
       this.dbModel.belongsTo(User.dbModel);
 
       return await this.dbModel.findAll({ include: [User.dbModel] });
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async getByUser(userId) {
+    try {
+      const Op = Sequelize.Op;
+      User.dbModel.hasMany(dbCashOut);
+      this.dbModel.belongsTo(User.dbModel);
+      const date = new Date();
+
+      return await this.dbModel.findAll({
+        include: [User.dbModel],
+        where: {
+          userId,
+          createdAt: { [Op.gte]: date.setHours(date.getHours() - 8) },
+        },
+      });
     } catch (e) {
       throw e;
     }
@@ -60,12 +80,11 @@ class CashOut extends Entity {
     }
   }
 
-  async validateCreate({ description, id_User, amount }) {
+  validateCreate({ description, id_User, amount }) {
     try {
       if (
         description &&
-        id_User &&
-        amount &&
+        isNum(id_User) &&
         isString(description) &&
         isNum(amount) &&
         amount > 0
