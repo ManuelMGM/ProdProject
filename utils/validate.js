@@ -1,5 +1,3 @@
-const isNumber = require('lodash').isFinite;
-
 module.exports = {
   isString(str) {
     if (str === null) {
@@ -10,6 +8,10 @@ module.exports = {
   },
 
   isNum(num) {
-    return isNumber(parseFloat(num));
+    if (num === '0') {
+      return true;
+    }
+
+    return parseFloat(num) && isFinite(num);
   },
 };

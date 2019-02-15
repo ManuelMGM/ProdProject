@@ -83,15 +83,29 @@ class CashShift extends Entity {
   }
 
   getLastCloseShift() {
-    return this.dbModel.findAll({
-      order: [['id', 'DESC']],
-      limit: 1,
-      attributes: ['createdAt'],
-    });
+    try {
+      return this.dbModel.findAll({
+        order: [['id', 'DESC']],
+        limit: 1,
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 
   validateCreate({ existingAmount, id_User }) {
     return isNum(existingAmount) && isNum(id_User);
+  }
+
+  getClosestShift() {
+    try {
+      return this.dbModel.findAll({
+        order: [['id', 'DESC']],
+        limit: 10,
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 }
 

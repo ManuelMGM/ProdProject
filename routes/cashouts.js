@@ -15,7 +15,6 @@ router.get('/', protected, async (req, res) => {
     } else if (req.query.from && req.query.to) {
       const from = stringToDate(req.query.from);
       const to = stringToDate(req.query.to);
-      console.log('dates', from, to);
       if (isBefore(from, to)) {
         cashMoves = await CashOut.getEntitiesByRangeDates(from, to);
         const amount = await CashOut.getCheckOutSum(from, to);
@@ -25,6 +24,20 @@ router.get('/', protected, async (req, res) => {
       }
     } else {
       res.status(400).send('Both dates must be included.');
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
+router.get('/:userId', protected, async (req, res) => {
+  try {
+    if (req.params.userId) {
+      const cashMoves = await CashOut.getByUser(req.params.userId);
+      res.send(cashMoves);
+    } else {
+      res.send({});
     }
   } catch (e) {
     console.error(e);
