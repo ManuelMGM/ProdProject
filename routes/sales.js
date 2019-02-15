@@ -70,7 +70,8 @@ router.post('/', protected, async (req, res) => {
       : res.status(400).send('Validate data format.');
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    console.log('entra 4 ');
+    res.status(400).send(e.message);
   }
 });
 

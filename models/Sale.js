@@ -49,6 +49,7 @@ class Sale extends Entity {
           id_PaymentMethod,
         })
       ) {
+        console.log('1');
         await sequelize.sync();
         let number = await sequelize.query(
           'SELECT MAX("number") FROM sales WHERE type = ?',
@@ -56,10 +57,12 @@ class Sale extends Entity {
         );
         number =
           parseInt(number[0].max, 10) > 0 ? parseInt(number[0].max, 10) + 1 : 1;
+        console.log('2');
 
         return sequelize
           .transaction()
           .then(transaction => {
+            console.log('3');
             return this.dbModel
               .create(
                 {
@@ -72,7 +75,9 @@ class Sale extends Entity {
                 { transaction }
               )
               .then(sale => {
+                console.log('4');
                 return sequelize.Promise.map(details, item => {
+                  console.log('5');
                   return SaleDetail.dbModel
                     .create(
                       {
@@ -85,12 +90,15 @@ class Sale extends Entity {
                       { transaction }
                     )
                     .then(detail => {
+                      console.log('6');
                       const { id_Product, quantity } = detail;
 
                       return Product.dbModel
                         .findByPk(id_Product, { transaction })
                         .then(product => {
+                          console.log('7');
                           if (product.stock >= quantity) {
+                            console.log('8');
                             const stock = product.stock - quantity;
                             const productData = { id: id_Product, stock };
 
@@ -103,35 +111,36 @@ class Sale extends Entity {
                                   transaction,
                                 }
                               )
-                              .then(productUpdated => productUpdated);
+                              .then(productUpdated => {
+                                console.log('9');
+                                return productUpdated;
+                              });
                           } else {
+                            console.log('10');
                             throw new Error('Stock is not enough.');
                           }
                         });
-                    })
-                    .then(
-                      result => result,
-                      error => {
-                        throw new Error(error);
-                      }
-                    );
-                });
-              })
-              .then(
-                newSale => {
+                    });
+                }).then(sale => {
                   transaction.commit();
 
-                  return newSale;
-                },
-                error => console.log('error en new sale', error)
-              );
+                  return sale;
+                });
+                // .catch(err => {
+                //   console.log('entra 1');
+                //   return
+                //   // throw err;
+                // });
+              })
+              .catch(err => {
+                console.log('entra 2');
+                throw err;
+              });
           })
-          .then(
-            res => res,
-            err => {
-              console.error(err);
-            }
-          );
+          .catch(err => {
+            console.log('entra 3');
+            throw err;
+          });
       } else {
         return false;
       }
