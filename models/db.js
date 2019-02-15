@@ -9,10 +9,10 @@ const sequelize = new Sequelize(
     dialect: 'postgres',
     logging: false,
     pool: {
-      max: 5,
+      max: 20,
       min: 0,
-      acquire: 30000,
-      idle: 10000,
+      acquire: 1000000,
+      idle: 200000,
     },
     // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
     operatorsAliases: false,
