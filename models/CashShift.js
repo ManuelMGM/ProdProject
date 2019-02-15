@@ -87,7 +87,6 @@ class CashShift extends Entity {
       return this.dbModel.findAll({
         order: [['id', 'DESC']],
         limit: 1,
-        attributes: ['createdAt'],
       });
     } catch (e) {
       throw e;
