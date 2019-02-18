@@ -58,7 +58,7 @@ class Sale extends Entity {
           parseInt(number[0].max, 10) > 0 ? parseInt(number[0].max, 10) + 1 : 1;
 
         return sequelize
-          .transaction()
+          .transaction({ autocommit: false })
           .then(transaction => {
             return this.dbModel
               .create(
@@ -72,7 +72,7 @@ class Sale extends Entity {
                 { transaction }
               )
               .then(sale => {
-                return sequelize.Promise.map(details, item => {
+                return sequelize.Promise.each(details, item => {
                   return SaleDetail.dbModel
                     .create(
                       {
@@ -105,14 +105,14 @@ class Sale extends Entity {
                               )
                               .then(productUpdated => productUpdated);
                           } else {
-                            throw new Error('Stock is not enough.');
+                            return transaction.rollback();
                           }
                         });
                     })
                     .then(
                       result => result,
                       error => {
-                        throw new Error(error);
+                        throw error;
                       }
                     );
                 });
@@ -123,13 +123,15 @@ class Sale extends Entity {
 
                   return newSale;
                 },
-                error => console.log('error en new sale', error)
+                error => {
+                  throw error;
+                }
               );
           })
           .then(
             res => res,
             err => {
-              console.error(err);
+              throw err;
             }
           );
       } else {

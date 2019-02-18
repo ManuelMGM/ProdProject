@@ -8,7 +8,7 @@ module.exports = {
   },
 
   isNum(num) {
-    if (num === '0') {
+    if (num === '0' || num === 0) {
       return true;
     }
 
