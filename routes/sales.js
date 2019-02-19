@@ -5,16 +5,7 @@ const Sale = require('../models/Sale');
 
 const isBefore = require('date-fns/is_before');
 const { stringToDate } = require('../utils/dates');
-
-router.get('/search/:number', protected, async (req, res) => {
-  try {
-    const sale = await Sale.getSale(req.params.number);
-    res.send(sale);
-  } catch (e) {
-    console.error(e);
-    res.sendStatus(400);
-  }
-});
+const status = require('../utils/statusCodes');
 
 router.get('/', protected, async (req, res) => {
   try {
@@ -44,14 +35,14 @@ router.get('/', protected, async (req, res) => {
           res.send({ amount, sales });
         }
       } else {
-        res.status(400).send('Verify dates.');
+        res.status(status.BAD_REQUEST).send('Verify dates.');
       }
     } else {
-      res.status(400).send('Both dates must be included.');
+      res.status(status.BAD_REQUEST).send('Both dates must be included.');
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -67,10 +58,10 @@ router.post('/', protected, async (req, res) => {
     });
     newSale
       ? res.send('SALE COMMITED')
-      : res.status(400).send('Validate data format.');
+      : res.status(status.BAD_REQUEST).send('Validate data format.');
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -80,7 +71,7 @@ router.get('/search/:number', protected, async (req, res) => {
     res.send(sale);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.BAD_REQUEST);
   }
 });
 

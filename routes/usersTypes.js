@@ -2,6 +2,7 @@ const router = require('express').Router();
 
 const { protected } = require('../middlewares');
 const UserType = require('../models/UserType');
+const status = require('../utils/statusCodes');
 
 router.get('/', protected, async (req, res) => {
   try {
@@ -9,7 +10,7 @@ router.get('/', protected, async (req, res) => {
     res.send(usersTypes);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -19,7 +20,7 @@ router.post('/', protected, async (req, res) => {
     res.send({ description: newType.description });
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -29,7 +30,7 @@ router.get('/search/:description', protected, async (req, res) => {
     res.send(userType);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 

@@ -2,6 +2,7 @@ const router = require('express').Router();
 
 const { protected } = require('../middlewares');
 const CashShift = require('../models/CashShift');
+const status = require('../utils/statusCodes');
 
 router.get('/', protected, async (req, res) => {
   try {
@@ -9,7 +10,7 @@ router.get('/', protected, async (req, res) => {
     res.send(shifts);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -19,7 +20,7 @@ router.get('/last', protected, async (req, res) => {
     res.send(fewShifts);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -29,7 +30,7 @@ router.post('/', protected, async (req, res) => {
     res.send(newCashShift);
   } catch (e) {
     console.error(e);
-    res.status(400).send(e.message);
+    res.status(status.INTERNAL_ERROR).send(e.message);
   }
 });
 

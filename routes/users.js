@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const { protected } = require('../middlewares');
 const User = require('../models/User');
+const status = require('../utils/statusCodes');
 
 router.get('/', protected, async (req, res) => {
   try {
@@ -10,7 +11,7 @@ router.get('/', protected, async (req, res) => {
     res.send(users);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -20,7 +21,7 @@ router.post('/', protected, async (req, res) => {
     res.send({ id: newUser.id, name: newUser.username });
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -40,11 +41,11 @@ router.post('/login', async (req, res) => {
         });
       });
     } else {
-      res.sendStatus(401);
+      res.sendStatus(status.UNAUTHORIZED);
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -53,7 +54,7 @@ router.get('/auth', async ({ token }, res) => {
     jwt.verify(token, process.env.PRIVATE_KEY, (err, authorizedData) => {
       if (err) {
         console.log('ERROR: Could not authenticate user', err.message);
-        res.status(403).send(err.message);
+        res.status(status.FORBIDDEN).send(err.message);
       } else {
         const {
           user: { id, username, id_UserType },
@@ -63,7 +64,7 @@ router.get('/auth', async ({ token }, res) => {
     });
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
