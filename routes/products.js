@@ -2,6 +2,7 @@ const router = require('express').Router();
 
 const { protected } = require('../middlewares');
 const Product = require('../models/Product');
+const status = require('../utils/statusCodes');
 
 router.get('/search', protected, async (req, res) => {
   try {
@@ -18,7 +19,7 @@ router.get('/search', protected, async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    res.status(400);
+    res.status(status.INTERNAL_ERROR);
   }
 });
 
@@ -33,7 +34,7 @@ router.get('/', protected, async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -47,7 +48,7 @@ router.get('/:id', protected, async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -64,11 +65,11 @@ router.post('/', protected, async (req, res) => {
         id_Provider: newProduct.id_Provider,
       });
     } else {
-      res.status(400).send('Validate properties.');
+      res.status(status.BAD_REQUEST).send('Validate properties.');
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -79,14 +80,14 @@ router.put('/:productId', protected, async (req, res, next) => {
         const product = await Product.updateEntity(req.body);
         res.send(product);
       } else {
-        res.status(400).send('Validate properties values.');
+        res.status(status.BAD_REQUEST).send('Validate properties values.');
       }
     } else {
       res.send({});
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -97,13 +98,13 @@ router.put('/', protected, async (req, res, next) => {
       updatedProducts = await Product.updateMultiple(products);
       updatedProducts
         ? res.send(updatedProducts)
-        : res.status(400).send('Validate properties values.');
+        : res.status(status.BAD_REQUEST).send('Validate properties values.');
     } else {
-      res.status(400).send('Validate properties format.');
+      res.status(status.BAD_REQUEST).send('Validate properties format.');
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 

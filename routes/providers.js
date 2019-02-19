@@ -2,6 +2,7 @@ const router = require('express').Router();
 
 const { protected } = require('../middlewares');
 const Provider = require('../models/Provider');
+const status = require('../utils/statusCodes');
 
 router.get('/', protected, async (req, res) => {
   try {
@@ -9,7 +10,7 @@ router.get('/', protected, async (req, res) => {
     res.send(providers);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -19,7 +20,7 @@ router.get('/search/:id', protected, async (req, res) => {
     res.send(provider);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -30,11 +31,11 @@ router.get('/:id/products', protected, async (req, res) => {
       const productsList = await Provider.getProductsByProvider(id);
       res.send(productsList);
     } else {
-      res.status(400).send('Type of "id" does not match.');
+      res.status(status.BAD_REQUEST).send('Type of "id" does not match.');
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -51,7 +52,7 @@ router.post('/', protected, async (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -61,13 +62,13 @@ router.put('/:providerId', protected, async (req, res, next) => {
       const provider = await Provider.updateEntity(req.body);
       provider
         ? res.send(provider)
-        : res.status(400).send('Validate properties values.');
+        : res.status(status.BAD_REQUEST).send('Validate properties values.');
     } else {
       res.send({});
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 

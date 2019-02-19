@@ -6,6 +6,8 @@ const CashOut = require('../models/CashOut');
 const isBefore = require('date-fns/is_before');
 const { stringToDate } = require('../utils/dates');
 
+const status = require('../utils/statusCodes');
+
 router.get('/', protected, async (req, res) => {
   try {
     let cashMoves;
@@ -20,14 +22,14 @@ router.get('/', protected, async (req, res) => {
         const amount = await CashOut.getCheckOutSum(from, to);
         res.send({ amount, cashMoves });
       } else {
-        res.status(400).send('Verify dates.');
+        res.status(status.BAD_REQUEST).send('Verify dates.');
       }
     } else {
-      res.status(400).send('Both dates must be included.');
+      res.status(status.BAD_REQUEST).send('Both dates must be included.');
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -41,7 +43,7 @@ router.get('/:userId', protected, async (req, res) => {
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -52,7 +54,7 @@ router.post('/', protected, async (req, res) => {
     res.send(cashMoved);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
@@ -62,7 +64,7 @@ router.delete('/:id', protected, async (req, res) => {
     res.send(cashDeleted);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
