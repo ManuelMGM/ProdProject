@@ -57,83 +57,105 @@ class Sale extends Entity {
         number =
           parseInt(number[0].max, 10) > 0 ? parseInt(number[0].max, 10) + 1 : 1;
 
-        return sequelize
-          .transaction({ autocommit: false })
-          .then(transaction => {
-            return this.dbModel
-              .create(
-                {
-                  number,
-                  type,
-                  amount,
-                  id_User,
-                  id_PaymentMethod,
-                },
-                { transaction }
-              )
-              .then(sale => {
-                return sequelize.Promise.each(details, item => {
-                  return SaleDetail.dbModel
-                    .create(
-                      {
-                        saleNumber: sale.number,
-                        type: sale.type,
-                        id_Product: item.id_Product,
-                        price: item.price,
-                        quantity: item.quantity,
-                      },
-                      { transaction }
-                    )
-                    .then(detail => {
-                      const { id_Product, quantity } = detail;
-
-                      return Product.dbModel
-                        .findByPk(id_Product, { transaction })
-                        .then(product => {
-                          if (product.stock >= quantity) {
-                            const stock = product.stock - quantity;
-                            const productData = { id: id_Product, stock };
-
+        // Start transaction
+        return (
+          sequelize
+            .transaction({ autocommit: false })
+            .then(transaction => {
+              // If transaction started OK, start creating Sale
+              return (
+                this.dbModel
+                  .create(
+                    {
+                      number,
+                      type,
+                      amount,
+                      id_User,
+                      id_PaymentMethod,
+                    },
+                    { transaction }
+                  )
+                  .then(sale => {
+                    // If Sale created OK, start iterating over sales details
+                    return sequelize.Promise.each(details, item => {
+                      // Create detail
+                      return (
+                        SaleDetail.dbModel
+                          .create(
+                            {
+                              saleNumber: sale.number,
+                              type: sale.type,
+                              id_Product: item.id_Product,
+                              price: item.price,
+                              quantity: item.quantity,
+                            },
+                            { transaction }
+                          )
+                          .then(detail => {
+                            const { id_Product, quantity } = detail;
+                            // Get product of sale detail to check stock
                             return Product.dbModel
-                              .update(
-                                { ...productData, updateAt: Date.now() },
-                                {
-                                  returning: true,
-                                  where: { id: id_Product },
-                                  transaction,
+                              .findByPk(id_Product, { transaction })
+                              .then(product => {
+                                // Checking stock is available
+                                if (product.stock >= quantity) {
+                                  const stock = product.stock - quantity;
+                                  const productData = { id: id_Product, stock };
+                                  // Update stock for product and save
+                                  return Product.dbModel
+                                    .update(
+                                      { ...productData, updateAt: Date.now() },
+                                      {
+                                        returning: true,
+                                        where: { id: id_Product },
+                                        transaction,
+                                      }
+                                    )
+                                    .then(productUpdated => productUpdated);
+                                } else {
+                                  // Rolling transaction back for lacking of stock
+                                  return transaction
+                                    .rollback()
+                                    .then(result => result);
                                 }
-                              )
-                              .then(productUpdated => productUpdated);
-                          } else {
-                            return transaction.rollback();
-                          }
-                        });
-                    })
-                    .then(
-                      result => result,
-                      error => {
-                        throw error;
-                      }
-                    );
-                });
-              })
-              .then(
-                newSale => {
-                  transaction.commit();
-
-                  return newSale;
-                },
-                error => {
-                  throw error;
-                }
+                              });
+                          })
+                          // Returning result of iteration
+                          .then(
+                            result => result,
+                            error => {
+                              throw error;
+                            }
+                          )
+                      );
+                    });
+                  })
+                  // Returning result of sale creation
+                  .then(
+                    newSale => {
+                      // If any of the stock updates is succesfull,
+                      // sequelize will try to commit.
+                      return transaction.commit(
+                        () => newSale,
+                        error => {
+                          throw error;
+                        }
+                      );
+                    },
+                    error => {
+                      throw error;
+                    }
+                  )
               );
-          })
-          .then(
-            res => res,
-            err => {
-              throw err;
-            }
-          );
+            })
+            // Returning result of transaction promise
+            .then(
+              res => res,
+              err => {
+                throw err;
+              }
+            )
+        );
       } else {
         return false;
       }
