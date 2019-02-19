@@ -2,6 +2,8 @@ const { Sequelize, sequelize } = require('./db');
 const SaleDetail = require('./SaleDetail');
 const Entity = require('./Entity');
 const Product = require('./Product');
+const User = require('./User');
+const PaymentMethod = require('./PaymentMethod');
 
 const { isString, isNum } = require('../utils/validate');
 
@@ -19,12 +21,14 @@ const dbSale = sequelize.define('sales', {
     primaryKey: true,
   },
   amount: { type: Sequelize.FLOAT },
-  id_User: {
+  userId: {
     type: Sequelize.INTEGER,
+    field: 'id_User',
     references: { model: 'users', key: 'id' },
   },
-  id_PaymentMethod: {
+  paymentMethodId: {
     type: Sequelize.INTEGER,
+    field: 'id_PaymentMethod',
     references: { model: 'paymentMethods', key: 'id' },
   },
 });
@@ -272,6 +276,20 @@ class Sale extends Entity {
       }
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  getAll() {
+    try {
+      User.dbModel.hasMany(dbSale);
+      PaymentMethod.dbModel.hasMany(dbSale);
+      this.dbModel.belongsTo(PaymentMethod.dbModel);
+      this.dbModel.belongsTo(User.dbModel);
+      return this.dbModel.findAll({
+        include: [User.dbModel, PaymentMethod.dbModel],
+      });
+    } catch (e) {
+      throw e;
     }
   }
 }
