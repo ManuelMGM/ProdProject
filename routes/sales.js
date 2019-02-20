@@ -11,10 +11,8 @@ router.get('/', protected, async (req, res) => {
   try {
     let sales;
     if (!req.query.from && !req.query.to) {
-      if (req.query.idProduct) {
-        sales = await Sale.getAll();
-        res.send(sales);
-      }
+      sales = await Sale.getAll();
+      res.send(sales);
     } else if (req.query.from && req.query.to) {
       const from = stringToDate(req.query.from);
       const to = stringToDate(req.query.to);
@@ -56,7 +54,6 @@ router.post('/', protected, async (req, res) => {
 router.get('/search/:number/:type', protected, async (req, res) => {
   try {
     const sale = await Sale.getEntity(req.params.number, req.params.type);
-    console.log(sale)
     sale
       ? res.send(sale)
       : res.status(status.BAD_REQUEST).send('Validate data format.');
