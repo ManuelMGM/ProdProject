@@ -295,19 +295,24 @@ class Sale extends Entity {
     }
   }
 
-  async getEntity(number) {
+  async getEntity(number, type) {
     try {
-      User.dbModel.hasMany(dbSale);
-      PaymentMethod.dbModel.hasMany(dbSale);
-      this.dbModel.belongsTo(PaymentMethod.dbModel);
-      this.dbModel.belongsTo(User.dbModel);
+      if (isNum(number) & !!isString(type)) {
+        User.dbModel.hasMany(dbSale);
+        PaymentMethod.dbModel.hasMany(dbSale);
+        this.dbModel.belongsTo(PaymentMethod.dbModel);
+        this.dbModel.belongsTo(User.dbModel);
 
-      return await this.dbModel.findAll({
-        include: [User.dbModel, PaymentMethod.dbModel],
-        where: { number },
-      });
+        return await this.dbModel.findOne({
+          include: [User.dbModel, PaymentMethod.dbModel],
+          where: { number, type },
+        });
+      } else {
+        return false;
+      }
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 }

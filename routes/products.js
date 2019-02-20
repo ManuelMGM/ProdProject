@@ -74,17 +74,17 @@ router.get('/:productId/sales', protected, async (req, res) => {
           );
           sales ? res.send(sales) : res.send({});
         } else {
-          res.status(400).send('Verify dates.');
+          res.status(status.BAD_REQUEST).send('Verify dates.');
         }
       } else {
-        res.status(400).send('Both dates must be included.');
+        res.status(status.BAD_REQUEST).send('Both dates must be included.');
       }
     } else {
       res.send({});
     }
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
