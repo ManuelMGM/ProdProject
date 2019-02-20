@@ -34,6 +34,16 @@ router.get('/last', protected, async (req, res) => {
   }
 });
 
+router.get('/last', protected, async (req, res) => {
+  try {
+    const fewShifts = await CashShift.getClosestShift();
+    res.send(fewShifts);
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
 router.post('/', protected, async (req, res) => {
   try {
     const newCashShift = await CashShift.create({ ...req.body });
