@@ -33,6 +33,10 @@ const dbSale = sequelize.define('sales', {
   },
 });
 
+User.dbModel.hasMany(dbSale);
+PaymentMethod.dbModel.hasMany(dbSale);
+dbSale.belongsTo(PaymentMethod.dbModel);
+dbSale.belongsTo(User.dbModel);
 class Sale extends Entity {
   constructor() {
     super(dbSale);
@@ -281,11 +285,6 @@ class Sale extends Entity {
 
   getAll() {
     try {
-      User.dbModel.hasMany(dbSale);
-      PaymentMethod.dbModel.hasMany(dbSale);
-      this.dbModel.belongsTo(PaymentMethod.dbModel);
-      this.dbModel.belongsTo(User.dbModel);
-
       return this.dbModel.findAll({
         include: [User.dbModel, PaymentMethod.dbModel],
       });
@@ -298,11 +297,6 @@ class Sale extends Entity {
   async getEntity(number, type) {
     try {
       if (isNum(number) & !!isString(type)) {
-        User.dbModel.hasMany(dbSale);
-        PaymentMethod.dbModel.hasMany(dbSale);
-        this.dbModel.belongsTo(PaymentMethod.dbModel);
-        this.dbModel.belongsTo(User.dbModel);
-
         return await this.dbModel.findOne({
           include: [User.dbModel, PaymentMethod.dbModel],
           where: { number, type },
@@ -312,6 +306,23 @@ class Sale extends Entity {
       }
     } catch (e) {
       console.error(e);
+      throw e;
+    }
+  }
+  async getEntitiesByRangeDates(from, to) {
+    const Op = Sequelize.Op;
+
+    try {
+      return await this.dbModel.findAll({
+        include: [User.dbModel, PaymentMethod.dbModel],
+        where: {
+          createdAt: {
+            [Op.between]: [from, to],
+          },
+        },
+      });
+    } catch (e) {
+      console.log(e);
       throw e;
     }
   }
