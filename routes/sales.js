@@ -12,9 +12,6 @@ router.get('/', protected, async (req, res) => {
     let sales;
     if (!req.query.from && !req.query.to) {
       if (req.query.idProduct) {
-        sales = await Sale.getSaleWithProduct(req.query.idProduct);
-        sales ? res.send(sales) : res.send({});
-      } else {
         sales = await Sale.getAll();
         res.send(sales);
       }
@@ -22,18 +19,9 @@ router.get('/', protected, async (req, res) => {
       const from = stringToDate(req.query.from);
       const to = stringToDate(req.query.to);
       if (isBefore(from, to)) {
-        if (req.query.idProduct) {
-          sales = await Sale.getSaleWithProductByDates(
-            req.query.idProduct,
-            from,
-            to
-          );
-          sales ? res.send(sales) : res.send({});
-        } else {
-          sales = await Sale.getEntitiesByRangeDates(from, to);
-          const amount = await Sale.getSalesSum(from, to);
-          res.send({ amount, sales });
-        }
+        sales = await Sale.getEntitiesByRangeDates(from, to);
+        const amount = await Sale.getSalesSum(from, to);
+        res.send({ amount, sales });
       } else {
         res.status(status.BAD_REQUEST).send('Verify dates.');
       }
@@ -65,13 +53,16 @@ router.post('/', protected, async (req, res) => {
   }
 });
 
-router.get('/search/:number', protected, async (req, res) => {
+router.get('/search/:number/:type', protected, async (req, res) => {
   try {
-    const sale = await Sale.getEntity(req.params.number);
-    res.send(sale);
+    const sale = await Sale.getEntity(req.params.number, req.params.type);
+    console.log(sale)
+    sale
+      ? res.send(sale)
+      : res.status(status.BAD_REQUEST).send('Validate data format.');
   } catch (e) {
     console.error(e);
-    res.sendStatus(status.BAD_REQUEST);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
