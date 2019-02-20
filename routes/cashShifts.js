@@ -30,7 +30,7 @@ router.get('/last', protected, async (req, res) => {
     res.send(fewShifts);
   } catch (e) {
     console.error(e);
-    res.sendStatus(400);
+    res.sendStatus(status.INTERNAL_ERROR);
   }
 });
 
