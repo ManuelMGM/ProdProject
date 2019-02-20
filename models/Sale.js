@@ -48,9 +48,9 @@ class Sale extends Entity {
         this.validateCreate({
           type,
           amount,
-          id_User,
+          userId: id_User,
           details,
-          id_PaymentMethod,
+          paymentMethod: id_PaymentMethod,
         })
       ) {
         await sequelize.sync();
@@ -285,11 +285,29 @@ class Sale extends Entity {
       PaymentMethod.dbModel.hasMany(dbSale);
       this.dbModel.belongsTo(PaymentMethod.dbModel);
       this.dbModel.belongsTo(User.dbModel);
+
       return this.dbModel.findAll({
         include: [User.dbModel, PaymentMethod.dbModel],
       });
     } catch (e) {
+      console.error(e);
       throw e;
+    }
+  }
+
+  async getEntity(number) {
+    try {
+      User.dbModel.hasMany(dbSale);
+      PaymentMethod.dbModel.hasMany(dbSale);
+      this.dbModel.belongsTo(PaymentMethod.dbModel);
+      this.dbModel.belongsTo(User.dbModel);
+
+      return await this.dbModel.findAll({
+        include: [User.dbModel, PaymentMethod.dbModel],
+        where: { number },
+      });
+    } catch (e) {
+      console.error(e);
     }
   }
 }

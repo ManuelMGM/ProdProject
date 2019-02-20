@@ -7,14 +7,43 @@ const isBefore = require('date-fns/is_before');
 const { stringToDate } = require('../utils/dates');
 const status = require('../utils/statusCodes');
 
+router.get('/products/:productId', protected, async (req, res) => {
+  try {
+    let sales;
+    if (req.params.productId) {
+      if (!req.query.from && !req.query.to) {
+        sales = await Sale.getSaleWithProduct(req.params.productId);
+        sales ? res.send(sales) : res.send({});
+      } else if (req.query.from && req.query.to) {
+        const from = stringToDate(req.query.from);
+        const to = stringToDate(req.query.to);
+        if (isBefore(from, to)) {
+          sales = await Sale.getSaleWithProductByDates(
+            req.params.productId,
+            from,
+            to
+          );
+          sales ? res.send(sales) : res.send({});
+        } else {
+          res.status(400).send('Verify dates.');
+        }
+      } else {
+        res.status(400).send('Both dates must be included.');
+      }
+    } else {
+      res.send({});
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
+  }
+});
+
 router.get('/', protected, async (req, res) => {
   try {
     let sales;
     if (!req.query.from && !req.query.to) {
       if (req.query.idProduct) {
-        sales = await Sale.getSaleWithProduct(req.query.idProduct);
-        sales ? res.send(sales) : res.send({});
-      } else {
         sales = await Sale.getAll();
         res.send(sales);
       }
@@ -22,18 +51,9 @@ router.get('/', protected, async (req, res) => {
       const from = stringToDate(req.query.from);
       const to = stringToDate(req.query.to);
       if (isBefore(from, to)) {
-        if (req.query.idProduct) {
-          sales = await Sale.getSaleWithProductByDates(
-            req.query.idProduct,
-            from,
-            to
-          );
-          sales ? res.send(sales) : res.send({});
-        } else {
-          sales = await Sale.getEntitiesByRangeDates(from, to);
-          const amount = await Sale.getSalesSum(from, to);
-          res.send({ amount, sales });
-        }
+        sales = await Sale.getEntitiesByRangeDates(from, to);
+        const amount = await Sale.getSalesSum(from, to);
+        res.send({ amount, sales });
       } else {
         res.status(status.BAD_REQUEST).send('Verify dates.');
       }
