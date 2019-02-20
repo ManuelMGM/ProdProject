@@ -48,9 +48,9 @@ class Sale extends Entity {
         this.validateCreate({
           type,
           amount,
-          userId: id_User,
+          id_User,
           details,
-          paymentMethod: id_PaymentMethod,
+          id_PaymentMethod,
         })
       ) {
         await sequelize.sync();
