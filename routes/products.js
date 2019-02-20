@@ -3,6 +3,10 @@ const router = require('express').Router();
 const { protected } = require('../middlewares');
 const Product = require('../models/Product');
 const status = require('../utils/statusCodes');
+const Sale = require('../models/Sale');
+
+const isBefore = require('date-fns/is_before');
+const { stringToDate } = require('../utils/dates');
 
 router.get('/search', protected, async (req, res) => {
   try {
@@ -49,6 +53,38 @@ router.get('/:id', protected, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.sendStatus(status.INTERNAL_ERROR);
+  }
+});
+
+router.get('/:productId/sales', protected, async (req, res) => {
+  try {
+    let sales;
+    if (req.params.productId) {
+      if (!req.query.from && !req.query.to) {
+        sales = await Sale.getSaleWithProduct(req.params.productId);
+        sales ? res.send(sales) : res.send({});
+      } else if (req.query.from && req.query.to) {
+        const from = stringToDate(req.query.from);
+        const to = stringToDate(req.query.to);
+        if (isBefore(from, to)) {
+          sales = await Sale.getSaleWithProductByDates(
+            req.params.productId,
+            from,
+            to
+          );
+          sales ? res.send(sales) : res.send({});
+        } else {
+          res.status(400).send('Verify dates.');
+        }
+      } else {
+        res.status(400).send('Both dates must be included.');
+      }
+    } else {
+      res.send({});
+    }
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(400);
   }
 });
 
