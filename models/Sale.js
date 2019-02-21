@@ -78,8 +78,8 @@ class Sale extends Entity {
                       number,
                       type,
                       amount,
-                      id_User,
-                      id_PaymentMethod,
+                      userId: id_User,
+                      paymentMethodId: id_PaymentMethod,
                     },
                     { transaction }
                   )
