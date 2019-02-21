@@ -19,9 +19,9 @@ router.get('/', protected, async (req, res) => {
 
       if (isBefore(from, to)) {
         sales = await Sale.getEntitiesByRangeDates(from, to);
-        const [sum] = await Sale.getSalesSum(from, to);
+        const sum = await Sale.getSalesSum(from, to);
 
-        res.send({ ...sum, sales });
+        res.send({ sum, sales });
       } else {
         res.status(status.BAD_REQUEST).send('Verify dates.');
       }
