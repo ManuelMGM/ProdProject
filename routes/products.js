@@ -63,9 +63,9 @@ router.get('/:productId/sales', protected, async (req, res) => {
     if (req.params.productId) {
       if (!req.query.from && !req.query.to) {
         sales = await Sale.getSaleWithProduct(req.params.productId);
-        [sum] = await Sale.getSaleSumWithProduct(req.params.productId);
-        
-        res.send({ ...sum, sales });
+        sum = await Sale.getSaleSumWithProduct(req.params.productId);
+
+        res.send({ sum, sales });
       } else if (req.query.from && req.query.to) {
         const from = stringToDate(req.query.from);
         const to = stringToDate(req.query.to);
@@ -75,13 +75,13 @@ router.get('/:productId/sales', protected, async (req, res) => {
             from,
             to
           );
-          [sum] = await Sale.getSaleSumWithProductByRange(
+          sum = await Sale.getSaleSumWithProductByRange(
             req.params.productId,
             from,
             to
           );
 
-          res.send({ ...sum, sales });
+          res.send({ sum, sales });
         } else {
           res.status(status.BAD_REQUEST).send('Verify dates.');
         }

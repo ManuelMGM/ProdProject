@@ -223,6 +223,7 @@ class Sale extends Entity {
     try {
       return this.dbModel.findAll({
         include: [User.dbModel, PaymentMethod.dbModel],
+        order: [['createdAt', 'DESC']],
       });
     } catch (e) {
       console.error(e);
@@ -254,6 +255,7 @@ class Sale extends Entity {
             [Op.between]: [from, to],
           },
         },
+        order: [['createdAt', 'DESC']],
       });
     } catch (e) {
       console.log(e);
@@ -274,18 +276,11 @@ class Sale extends Entity {
 
   async getCashSalesSum(from, to) {
     try {
-      // should be this way, but sequelize ask for group by clause.
-      // if group is added, sum declaration must be changed in products route.
-      // return await dbSale.sum('amount', {
-      //   include: [{ model: PaymentMethod.dbModel, where: { id: 1 } }],
-      //   where: { createdAt: { [Op.between]: [from, to] } },
-      // });
-      const [response] = await sequelize.query(
-        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to AND "id_PaymentMethod"=1',
-        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
-      );
-
-      return response.sum || 0;
+      return await dbSale.sum('amount', {
+        includeIgnoreAttributes: false,
+        include: [{ model: PaymentMethod.dbModel, where: { id: 1 } }],
+        where: { createdAt: { [Op.between]: [from, to] } },
+      });
     } catch (e) {
       console.error(e);
       throw e;
@@ -301,6 +296,7 @@ class Sale extends Entity {
             PaymentMethod.dbModel,
             { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
           ],
+          order: [['createdAt', 'DESC']],
         });
       } else {
         return false;
@@ -320,6 +316,7 @@ class Sale extends Entity {
             { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
           ],
           where: { createdAt: { [Op.between]: [from, to] } },
+          order: [['createdAt', 'DESC']],
         });
       } else {
         return false;
@@ -331,44 +328,26 @@ class Sale extends Entity {
 
   async getSaleSumWithProduct(idProduct) {
     if (isNum(idProduct)) {
-      // should be this way, but sequelize ask for group by clause.
-      // if group is added, sum declaration must be changed in products route.
-      // return await dbSale.sum('amount', {
-      //   include: [
-      //     { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
-      //   ],
-      // });
-      const query =
-        'SELECT SUM(s.amount)' +
-        ' FROM public.sales s INNER JOIN public."salesDetails" sd ON (s."number" = sd."saleNumber" AND s.type = sd.type)' +
-        ' INNER JOIN public.products p ON (sd."id_Product" = p.id)' +
-        ' WHERE p.id = :idProduct';
-
-      return await sequelize.query(query, {
-        replacements: { idProduct },
-        type: sequelize.QueryTypes.SELECT,
+      return await dbSale.sum('amount', {
+        includeIgnoreAttributes: false,
+        include: [
+          { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
+        ],
       });
     }
   }
   async getSaleSumWithProductByRange(idProduct, from, to) {
     if (isNum(idProduct)) {
-      // should be this way, but sequelize ask for group by clause.
-      // if group is added, sum declaration must be changed in products route.
-      // return await dbSale.sum('amount', {
-      //   include: [
-      //     { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
-      //   ],
-      //   where: { createdAt: { [Op.between]: [from, to] } },
-      // });
-      const query =
-        'SELECT SUM(s.amount)' +
-        ' FROM public.sales s INNER JOIN public."salesDetails" sd ON (s."number" = sd."saleNumber" AND s.type = sd.type)' +
-        ' INNER JOIN public.products p ON (sd."id_Product" = p.id)' +
-        ' WHERE p.id = :idProduct AND s."createdAt" BETWEEN :from AND :to';
-
-      return await sequelize.query(query, {
-        replacements: { idProduct, from, to },
-        type: sequelize.QueryTypes.SELECT,
+      return await dbSale.sum('amount', {
+        includeIgnoreAttributes: false,
+        include: [
+          {
+            model: SaleDetail.dbModel,
+            where: { id_Product: idProduct },
+            atributes: [],
+          },
+        ],
+        where: { createdAt: { [Op.between]: [from, to] } },
       });
     }
   }
