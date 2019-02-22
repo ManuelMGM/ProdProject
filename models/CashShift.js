@@ -53,14 +53,11 @@ class CashShift extends Entity {
               : getPreviousShift();
 
             await sequelize.sync();
-            const salesSum = await Sale.getCashSalesSum(
-              from,
-              new Date().toISOString()
-            );
-            const cashOutSum = await CashOut.getCheckOutSum(
-              from,
-              new Date().toISOString()
-            );
+            const salesSum =
+              (await Sale.getCashSalesSum(from, new Date().toISOString())) || 0;
+            const cashOutSum =
+              (await CashOut.getCheckOutSum(from, new Date().toISOString())) ||
+              0;
 
             return await this.dbModel.create({
               existingAmount,
