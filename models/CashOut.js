@@ -3,6 +3,8 @@ const { isString, isNum } = require('../utils/validate');
 const Entity = require('./Entity');
 const User = require('./User');
 
+const Op = Sequelize.Op;
+
 const dbCashOut = sequelize.define('cashOuts', {
   description: { type: Sequelize.TEXT, allowNull: false },
   userId: {
@@ -49,7 +51,6 @@ class CashOut extends Entity {
 
   async getByUser(userId) {
     try {
-      const Op = Sequelize.Op;
       User.dbModel.hasMany(dbCashOut);
       this.dbModel.belongsTo(User.dbModel);
       const date = new Date();
@@ -68,12 +69,10 @@ class CashOut extends Entity {
 
   async getCheckOutSum(from, to) {
     try {
-      const [response] = await sequelize.query(
-        'SELECT SUM("amount") FROM "cashOuts" WHERE "createdAt" BETWEEN :from AND :to',
-        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
-      );
-
-      return response.sum || 0;
+      return await dbCashOut.sum('amount', {
+        includeIgnoreAttributes: false,
+        where: { createdAt: { [Op.between]: [from, to] } },
+      });
     } catch (e) {
       console.error(e);
       throw e;

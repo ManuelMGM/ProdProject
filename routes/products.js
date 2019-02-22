@@ -59,20 +59,29 @@ router.get('/:id', protected, async (req, res) => {
 router.get('/:productId/sales', protected, async (req, res) => {
   try {
     let sales;
+    let sum;
     if (req.params.productId) {
       if (!req.query.from && !req.query.to) {
         sales = await Sale.getSaleWithProduct(req.params.productId);
-        sales ? res.send(sales) : res.send({});
+        sum = await Sale.getSaleSumWithProduct(req.params.productId);
+
+        res.send({ sum, sales });
       } else if (req.query.from && req.query.to) {
         const from = stringToDate(req.query.from);
         const to = stringToDate(req.query.to);
         if (isBefore(from, to)) {
-          sales = await Sale.getSaleWithProductByDates(
+          sales = await Sale.getSaleWithProductByRange(
             req.params.productId,
             from,
             to
           );
-          sales ? res.send(sales) : res.send({});
+          sum = await Sale.getSaleSumWithProductByRange(
+            req.params.productId,
+            from,
+            to
+          );
+
+          res.send({ sum, sales });
         } else {
           res.status(status.BAD_REQUEST).send('Verify dates.');
         }

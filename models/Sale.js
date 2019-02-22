@@ -6,6 +6,7 @@ const User = require('./User');
 const PaymentMethod = require('./PaymentMethod');
 
 const { isString, isNum } = require('../utils/validate');
+const Op = Sequelize.Op;
 
 const dbSale = sequelize.define('sales', {
   // Could fail when persisting for first time. Should add unique prop to avoid
@@ -37,6 +38,9 @@ User.dbModel.hasMany(dbSale);
 PaymentMethod.dbModel.hasMany(dbSale);
 dbSale.belongsTo(PaymentMethod.dbModel);
 dbSale.belongsTo(User.dbModel);
+dbSale.hasMany(SaleDetail.dbModel);
+SaleDetail.dbModel.belongsTo(dbSale);
+
 class Sale extends Entity {
   constructor() {
     super(dbSale);
@@ -215,78 +219,11 @@ class Sale extends Entity {
     return false;
   }
 
-  async getCashSalesSum(from, to) {
-    try {
-      const [response] = await sequelize.query(
-        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to AND "id_PaymentMethod"=1',
-        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
-      );
-
-      return response.sum || 0;
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
-  }
-
-  async getSalesSum(from, to) {
-    try {
-      return await sequelize.query(
-        'SELECT SUM("amount") FROM sales WHERE "createdAt" BETWEEN :from AND :to',
-        { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
-      );
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
-  }
-
-  async getSaleWithProduct(idProduct) {
-    try {
-      if (isNum(idProduct)) {
-        const query =
-          'SELECT s."number", s.type, s.amount, p."codProduct", p.description, s."id_User"' +
-          ' FROM public.sales s INNER JOIN public."salesDetails" sd ON (s."number" = sd."saleNumber" AND s.type = sd.type)' +
-          ' INNER JOIN public.products p ON (sd."id_Product" = p.id)' +
-          ' WHERE p.id = ?';
-
-        return await sequelize.query(query, {
-          replacements: [idProduct],
-          type: sequelize.QueryTypes.SELECT,
-        });
-      } else {
-        return false;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async getSaleWithProductByDates(idProduct, from, to) {
-    try {
-      if (isNum(idProduct)) {
-        const query =
-          'SELECT s."number", s.type, s.amount, p."codProduct", p.description, s."id_User"' +
-          ' FROM public.sales s INNER JOIN public."salesDetails" sd ON (s."number" = sd."saleNumber" AND s.type = sd.type)' +
-          ' INNER JOIN public.products p ON (sd."id_Product" = p.id)' +
-          ' WHERE p.id = :idProduct AND s."createdAt" BETWEEN :from AND :to';
-
-        return await sequelize.query(query, {
-          replacements: { idProduct, from, to },
-          type: sequelize.QueryTypes.SELECT,
-        });
-      } else {
-        return false;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
   getAll() {
     try {
       return this.dbModel.findAll({
         include: [User.dbModel, PaymentMethod.dbModel],
+        order: [['createdAt', 'DESC']],
       });
     } catch (e) {
       console.error(e);
@@ -310,8 +247,6 @@ class Sale extends Entity {
     }
   }
   async getEntitiesByRangeDates(from, to) {
-    const Op = Sequelize.Op;
-
     try {
       return await this.dbModel.findAll({
         include: [User.dbModel, PaymentMethod.dbModel],
@@ -320,9 +255,111 @@ class Sale extends Entity {
             [Op.between]: [from, to],
           },
         },
+        order: [['createdAt', 'DESC']],
       });
     } catch (e) {
       console.log(e);
+      throw e;
+    }
+  }
+
+  async getSalesSum(from, to) {
+    try {
+      return await dbSale.sum('amount', {
+        where: { createdAt: { [Op.between]: [from, to] } },
+      });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async getCashSalesSum(from, to) {
+    try {
+      return await dbSale.sum('amount', {
+        includeIgnoreAttributes: false,
+        include: [{ model: PaymentMethod.dbModel, where: { id: 1 } }],
+        where: { createdAt: { [Op.between]: [from, to] } },
+      });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async getSaleWithProduct(idProduct) {
+    try {
+      if (isNum(idProduct)) {
+        return await dbSale.findAll({
+          include: [
+            User.dbModel,
+            PaymentMethod.dbModel,
+            { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
+          ],
+          order: [['createdAt', 'DESC']],
+        });
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async getSaleWithProductByRange(idProduct, from, to) {
+    try {
+      if (isNum(idProduct)) {
+        return await this.dbModel.findAll({
+          include: [
+            User.dbModel,
+            PaymentMethod.dbModel,
+            { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
+          ],
+          where: { createdAt: { [Op.between]: [from, to] } },
+          order: [['createdAt', 'DESC']],
+        });
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async getSaleSumWithProduct(idProduct) {
+    try {
+      if (isNum(idProduct)) {
+        return await dbSale.sum('amount', {
+          includeIgnoreAttributes: false,
+          include: [
+            { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
+          ],
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+  async getSaleSumWithProductByRange(idProduct, from, to) {
+    try {
+      if (isNum(idProduct)) {
+        return await dbSale.sum('amount', {
+          includeIgnoreAttributes: false,
+          include: [
+            {
+              model: SaleDetail.dbModel,
+              where: { id_Product: idProduct },
+              atributes: [],
+            },
+          ],
+          where: { createdAt: { [Op.between]: [from, to] } },
+        });
+      }
+    } catch (e) {
+      console.error(e);
       throw e;
     }
   }
