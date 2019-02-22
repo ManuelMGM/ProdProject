@@ -303,6 +303,7 @@ class Sale extends Entity {
       }
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 
@@ -323,32 +324,43 @@ class Sale extends Entity {
       }
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 
   async getSaleSumWithProduct(idProduct) {
-    if (isNum(idProduct)) {
-      return await dbSale.sum('amount', {
-        includeIgnoreAttributes: false,
-        include: [
-          { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
-        ],
-      });
+    try {
+      if (isNum(idProduct)) {
+        return await dbSale.sum('amount', {
+          includeIgnoreAttributes: false,
+          include: [
+            { model: SaleDetail.dbModel, where: { id_Product: idProduct } },
+          ],
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
   }
   async getSaleSumWithProductByRange(idProduct, from, to) {
-    if (isNum(idProduct)) {
-      return await dbSale.sum('amount', {
-        includeIgnoreAttributes: false,
-        include: [
-          {
-            model: SaleDetail.dbModel,
-            where: { id_Product: idProduct },
-            atributes: [],
-          },
-        ],
-        where: { createdAt: { [Op.between]: [from, to] } },
-      });
+    try {
+      if (isNum(idProduct)) {
+        return await dbSale.sum('amount', {
+          includeIgnoreAttributes: false,
+          include: [
+            {
+              model: SaleDetail.dbModel,
+              where: { id_Product: idProduct },
+              atributes: [],
+            },
+          ],
+          where: { createdAt: { [Op.between]: [from, to] } },
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
   }
 }

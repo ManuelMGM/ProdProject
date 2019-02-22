@@ -73,12 +73,6 @@ class CashOut extends Entity {
         includeIgnoreAttributes: false,
         where: { createdAt: { [Op.between]: [from, to] } },
       });
-      // const [response] = await sequelize.query(
-      //   'SELECT SUM("amount") FROM "cashOuts" WHERE "createdAt" BETWEEN :from AND :to',
-      //   { replacements: { from, to }, type: sequelize.QueryTypes.SELECT }
-      // );
-
-      // return response.sum || 0;
     } catch (e) {
       console.error(e);
       throw e;
