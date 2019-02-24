@@ -7,13 +7,13 @@ class Entity {
   async create(entityProps) {
     try {
       await sequelize.sync();
-      const result = await this.dbModel.create({
+      return await this.dbModel.create({
         ...entityProps,
       });
-
-      return result;
     } catch (e) {
       console.error(e);
+
+      return e;
     }
   }
 
@@ -22,6 +22,8 @@ class Entity {
       return await this.dbModel.findByPk(id);
     } catch (e) {
       console.error(e);
+
+      return e;
     }
   }
 
@@ -45,6 +47,8 @@ class Entity {
       return result[1][0].dataValues;
     } catch (e) {
       console.error(e);
+
+      return e;
     }
   }
 
@@ -57,6 +61,8 @@ class Entity {
       return show;
     } catch (e) {
       console.log(e);
+
+      return e;
     }
   }
 
@@ -72,6 +78,8 @@ class Entity {
       });
     } catch (e) {
       console.log(e);
+
+      return e;
     }
   }
 }
