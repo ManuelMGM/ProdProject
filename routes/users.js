@@ -36,7 +36,7 @@ router.post('/login', async (req, res) => {
         res.send({
           id: user.id,
           token,
-          id_UserType: user.id_UserType,
+          id_UserType: user.userTypeId,
           username: user.username,
         });
       });
