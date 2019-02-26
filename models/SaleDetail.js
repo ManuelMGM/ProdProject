@@ -93,9 +93,8 @@ class SaleDetail extends Entity {
         where,
       });
     } catch (e) {
-      console.log(e);
-
-      return e;
+      console.error(e);
+      throw e;
     }
   }
 }
