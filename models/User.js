@@ -13,8 +13,9 @@ const dbUser = sequelize.define('user', {
     validate: { isEmail: true },
   },
   pwd: { type: Sequelize.STRING, allowNull: false },
-  id_UserType: {
+  userTypeId: {
     type: Sequelize.INTEGER,
+    field: 'id_UserType',
     references: { model: 'usersTypes', key: 'id' },
   },
 });
@@ -32,7 +33,7 @@ const hashPwd = async pwd => {
 class User extends Entity {
   constructor() {
     super(dbUser);
-    this.create = async ({ username, email, pwd }) => {
+    this.create = async ({ username, email, pwd, id_UserType }) => {
       try {
         const hash = await hashPwd(pwd);
 
@@ -42,6 +43,7 @@ class User extends Entity {
             dbUser.create({
               username,
               email,
+              userTypeId: id_UserType,
               pwd: hash,
             })
           )

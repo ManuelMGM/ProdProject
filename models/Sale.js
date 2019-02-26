@@ -1,5 +1,4 @@
 const { Sequelize, sequelize } = require('./db');
-const SaleDetail = require('./SaleDetail');
 const Entity = require('./Entity');
 const Product = require('./Product');
 const User = require('./User');
@@ -33,13 +32,6 @@ const dbSale = sequelize.define('sales', {
     references: { model: 'paymentMethods', key: 'id' },
   },
 });
-
-User.dbModel.hasMany(dbSale);
-PaymentMethod.dbModel.hasMany(dbSale);
-dbSale.belongsTo(PaymentMethod.dbModel);
-dbSale.belongsTo(User.dbModel);
-dbSale.hasMany(SaleDetail.dbModel);
-SaleDetail.dbModel.belongsTo(dbSale);
 
 class Sale extends Entity {
   constructor() {
@@ -97,29 +89,29 @@ class Sale extends Entity {
                             {
                               saleNumber: sale.number,
                               type: sale.type,
-                              id_Product: item.id_Product,
+                              productId: item.id_Product,
                               price: item.price,
                               quantity: item.quantity,
                             },
                             { transaction }
                           )
                           .then(detail => {
-                            const { id_Product, quantity } = detail;
+                            const { productId, quantity } = detail;
                             // Get product of sale detail to check stock
                             return Product.dbModel
-                              .findByPk(id_Product, { transaction })
+                              .findByPk(productId, { transaction })
                               .then(product => {
                                 // Checking stock is available
                                 if (product.stock >= quantity) {
                                   const stock = product.stock - quantity;
-                                  const productData = { id: id_Product, stock };
+                                  const productData = { id: productId, stock };
                                   // Update stock for product and save
                                   return Product.dbModel
                                     .update(
                                       { ...productData, updateAt: Date.now() },
                                       {
                                         returning: true,
-                                        where: { id: id_Product },
+                                        where: { id: productId },
                                         transaction,
                                       }
                                     )
@@ -263,6 +255,23 @@ class Sale extends Entity {
     }
   }
 
+  async getEntitiesByRangeDates(from, to) {
+    try {
+      return await this.dbModel.findAll({
+        include: [User.dbModel, PaymentMethod.dbModel],
+        where: {
+          createdAt: {
+            [Op.between]: [from, to],
+          },
+        },
+        order: [['createdAt', 'DESC']],
+      });
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
+
   async getSalesSum(from, to) {
     try {
       return await dbSale.sum('amount', {
@@ -366,3 +375,12 @@ class Sale extends Entity {
 }
 
 module.exports = new Sale();
+
+const SaleDetail = require('./SaleDetail');
+
+User.dbModel.hasMany(dbSale);
+PaymentMethod.dbModel.hasMany(dbSale);
+dbSale.belongsTo(PaymentMethod.dbModel);
+dbSale.belongsTo(User.dbModel);
+dbSale.hasMany(SaleDetail.dbModel);
+SaleDetail.dbModel.belongsTo(dbSale);
