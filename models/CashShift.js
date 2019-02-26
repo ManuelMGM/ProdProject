@@ -22,9 +22,10 @@ const dbCashShift = sequelize.define('cashShifts', {
     validate: { min: 0 },
     defaultValue: 0,
   },
-  id_User: {
+  userId: {
     type: Sequelize.INTEGER,
     allownull: false,
+    field: 'id_User',
     references: { model: 'users', key: 'id' },
   },
   observation: { type: Sequelize.TEXT },
@@ -63,11 +64,11 @@ class CashShift extends Entity {
               existingAmount,
               salesSum,
               cashOutSum,
-              id_User,
+              userId: id_User,
               observation,
             });
           } catch (e) {
-            throw Error(e);
+            throw e;
           }
         })
         .catch(error => {
@@ -98,6 +99,7 @@ class CashShift extends Entity {
     try {
       return this.dbModel.findAll({
         order: [['id', 'DESC']],
+        include: [User.dbModel],
         limit: 10,
       });
     } catch (e) {
@@ -107,3 +109,8 @@ class CashShift extends Entity {
 }
 
 module.exports = new CashShift();
+
+const User = require('./User');
+
+User.dbModel.hasMany(dbCashShift);
+dbCashShift.belongsTo(User.dbModel);
