@@ -1,7 +1,6 @@
 const { Sequelize, sequelize } = require('./db');
 const Entity = require('./Entity');
 const Product = require('./Product');
-const Sale = require('./Sale');
 const { isNum } = require('../utils/validate');
 
 const Op = Sequelize.Op;
@@ -97,9 +96,61 @@ class SaleDetail extends Entity {
       throw e;
     }
   }
+
+  async getSaleDetailsByRangeAndProductId(productId, from, to) {
+    const where =
+      from && to ? { createdAt: { [Op.between]: [from, to] } } : null;
+
+    try {
+      return await this.dbModel.findAll({
+        include: [
+          Sale.dbModel,
+          {
+            model: Product.dbModel,
+            where: { id: productId },
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        where,
+      });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async getSaleDetailSumWithProductIdByRange(productId, from, to) {
+    const where =
+      from && to ? { createdAt: { [Op.between]: [from, to] } } : null;
+
+    try {
+      if (isNum(productId)) {
+        const [result] = await this.dbModel.findAll({
+          includeIgnoreAttributes: false,
+
+          attributes: [[sequelize.literal('SUM(price * quantity)'), 'sum']],
+          include: [
+            {
+              model: Product.dbModel,
+              where: { id: productId },
+            },
+          ],
+          raw: true,
+          where,
+        });
+
+        return result.sum;
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
 }
 
 module.exports = new SaleDetail();
+
+const Sale = require('./Sale');
 
 Product.dbModel.hasMany(dbSaleDetail);
 dbSaleDetail.belongsTo(Product.dbModel);

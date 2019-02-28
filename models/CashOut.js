@@ -43,7 +43,10 @@ class CashOut extends Entity {
       User.dbModel.hasMany(dbCashOut);
       this.dbModel.belongsTo(User.dbModel);
 
-      return await this.dbModel.findAll({ include: [User.dbModel] });
+      return await this.dbModel.findAll({
+        include: [User.dbModel],
+        order: [['createdAt', 'DESC']],
+      });
     } catch (e) {
       throw e;
     }
