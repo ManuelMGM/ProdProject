@@ -3,7 +3,7 @@ const router = require('express').Router();
 const { protected } = require('../middlewares');
 const Product = require('../models/Product');
 const status = require('../utils/statusCodes');
-const Sale = require('../models/Sale');
+const SaleDetail = require('../models/SaleDetail');
 
 const isBefore = require('date-fns/is_before');
 const { stringToDate } = require('../utils/dates');
@@ -58,35 +58,28 @@ router.get('/:id', protected, async (req, res) => {
 
 router.get('/:productId/sales', protected, async (req, res) => {
   try {
-    let sales;
-    let sum;
-    if (req.params.productId) {
-      if (!req.query.from && !req.query.to) {
-        sales = await Sale.getSaleWithProduct(req.params.productId);
-        sum = await Sale.getSaleSumWithProduct(req.params.productId);
+    const { productId } = req.params;
+    const { from, to } = req.query;
+    if (productId) {
+      const fromDate = from && stringToDate(from);
+      const toDate = to && stringToDate(to);
+      const datesAreValid = (!from && !to) || isBefore(fromDate, toDate);
+      if (datesAreValid) {
+        const sales = await SaleDetail.getSaleDetailsByRangeAndProductId(
+          productId,
+          fromDate,
+          toDate
+        );
+
+        const sum = await SaleDetail.getSaleDetailSumWithProductIdByRange(
+          productId,
+          fromDate,
+          toDate
+        );
 
         res.send({ sum, sales });
-      } else if (req.query.from && req.query.to) {
-        const from = stringToDate(req.query.from);
-        const to = stringToDate(req.query.to);
-        if (isBefore(from, to)) {
-          sales = await Sale.getSaleWithProductByRange(
-            req.params.productId,
-            from,
-            to
-          );
-          sum = await Sale.getSaleSumWithProductByRange(
-            req.params.productId,
-            from,
-            to
-          );
-
-          res.send({ sum, sales });
-        } else {
-          res.status(status.BAD_REQUEST).send('Verify dates.');
-        }
       } else {
-        res.status(status.BAD_REQUEST).send('Both dates must be included.');
+        res.status(status.BAD_REQUEST).send('Verify dates.');
       }
     } else {
       res.send({});
