@@ -17,6 +17,7 @@ const dbProduct = sequelize.define('products', {
   minimumStock: { type: Sequelize.FLOAT, validate: { min: 0 } },
   salePrice: { type: Sequelize.FLOAT, validate: { min: 0 } },
   costPrice: { type: Sequelize.FLOAT, validate: { min: 0 } },
+  available: { type: Sequelize.BOOLEAN },
 });
 
 class Product extends Entity {
@@ -94,6 +95,7 @@ class Product extends Entity {
             { description: { [Op.iLike]: `%${term}%` } },
             { codProduct: { [Op.iLike]: `%${term}%` } },
           ],
+          available: true,
         },
       });
     } catch (e) {
